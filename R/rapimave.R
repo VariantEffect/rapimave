@@ -1,8 +1,6 @@
 
-library(httr)
-library(hgvsParseR)
-library(RJSONIO)
-
+# TODO: invoke library when needed
+# library(hgvsParseR)
 
 #' New R-API MaveDB User
 #'
@@ -282,6 +280,9 @@ print.rapimaveScoreSet <- function(obj) {
 #' mave <- new.rapimave()
 #' }
 new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,encoding="UTF-8") {
+
+	library(httr)
+	library(RJSONIO)
 
 	if (!certifySSL) {
 		set_config(config(ssl_verifypeer = 0L))

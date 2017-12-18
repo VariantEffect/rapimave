@@ -1,0 +1,72 @@
+library(rapimave)
+
+context("MaveDB data filtering")
+
+pBuilder <- new.hgvs.builder.p(aacode=3)
+mockData <- with(pBuilder,data.frame(
+	hgvs=c(
+		substitution(10,"K","A"),
+		cis(substitution(12,"A","D"),substitution(21,"K","E")),
+		cis(substitution(6,"A","K"),substitution(14,"S","I"),substitution(14,"W","*")),
+		cis(substitution(2,"D","H"),substitution(16,"K","A"))
+	),
+	score=c(0.1,0.4,0.22,0.85),
+	provenance=factor(c("experimental","imputed","imputed","experimental")),
+	stringsAsFactors=FALSE
+))
+
+test_that("mutationCount() works", {
+
+	mfilter <- new.mave.filter(mockData)
+	result <- which(mfilter$mutationCount(min=2))
+
+	expect_equivalent(result,c(2,3,4))
+})
+
+test_that("position() works", {
+
+	mfilter <- new.mave.filter(mockData)
+	result <- which(mfilter$position(min=10,max=15))
+	expect_equivalent(result,c(1,2,3))
+
+	result <- which(mfilter$position(min=10,max=15,multi="all"))
+	expect_equivalent(result,1)
+})
+
+test_that("residues() works", {
+
+	mfilter <- new.mave.filter(mockData)
+	result <- which(mfilter$residues(to="Ala"))
+	expect_equivalent(result,c(1,4))
+
+	result <- which(mfilter$residues(to="Ala",multi="all"))
+	expect_equivalent(result,c(1))
+})
+
+test_that("numerical() works", {
+
+	mfilter <- new.mave.filter(mockData)
+	result <- which(mfilter$numerical("score",min=0.1,max=0.3))
+	expect_equivalent(result,c(1,3))
+})
+
+test_that("categorical() works", {
+
+	mfilter <- new.mave.filter(mockData)
+	result <- which(mfilter$categorical("provenance","imputed"))
+	expect_equivalent(result,c(2,3))
+})
+
+test_that("combinatorial filtering works", {
+
+	mfilter <- new.mave.filter(mockData)
+	result <- which(with(mfilter,
+		categorical("provenance","imputed") & mutationCount(max=2)
+	))
+	expect_equivalent(result,2)
+
+	result <- which(with(mfilter,
+		position(min=5,multi="all") & residues(to="Ala") & numerical("score",min=0.1)
+	))
+	expect_equivalent(result,1)
+})

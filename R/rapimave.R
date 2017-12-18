@@ -1,7 +1,4 @@
 
-# TODO: invoke library when needed
-# library(hgvsParseR)
-
 #' New R-API MaveDB User
 #'
 #' Internal constructor that creates an immutable new user object. This function is not exported

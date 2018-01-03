@@ -49,58 +49,125 @@ new.mave.filter <- function(data,verbose=TRUE) {
 	}
 
 	.data <- data
+
 	cat("Parsing HGVS strings and building index...")
-	.mutations <- parseHGVS(data$hgvs)
-	if ("multiPart" %in% colnames(.mutations)) {
-		.index <- as.integer(sapply(strsplit(rownames(.mutations),"\\."),`[[`,1))
-		.nmut <- table(.index)
-	} else {#no multi-mutations should exist in this case
-		if (nrow(data) != nrow(.mutations)) {
-			stop("Non-matching HGVS. If you see this, report this as a bug.")
+	#check if mutations are reported at both coding and protein level
+	if (regexpr("c\\..+ \\(p\\..+\\)$",data$hgvs[[1]]) > 0) {
+		splits <- strsplit(data$hgvs," \\(")
+		if (all(sapply(splits,length)!=2)) {
+			stop("Inconsistent HGVS reporting! Some entries do not specify coding- and protein-level variation!")
 		}
-		.index <- 1:nrow(.data)
-		.nmut <- rep(1,nrow(.data))
+		.mut.coding <- sapply(splits,`[[`,1)
+		.mut.prot <- as.vector(sapply(sapply(splits,`[[`,2), function(s) 
+			#trim trailing parentheses
+			if (substr(s,nchar(s),nchar(s))==")") substr(s,1,nchar(s)-1) else s
+		))
+		.mut.coding <- parseHGVS(.mut.coding)
+		.mut.prot <- parseHGVS(.mut.prot)
+	# or if they are only reported at one level
+	} else if (regexpr("^c\\.\\S+$",data$hgvs[[1]],perl=TRUE) > 0) {
+		.mut.coding <- parseHGVS(data$hgvs)
+		.mut.prot <- data.frame(type=rep(NA,nrow(data)),pos=rep(NA,nrow(data)),
+			ancestral=rep(NA,nrow(data)),variant=rep(NA,nrow(data)))
+	} else if (regexpr("^p\\.\\S+$",data$hgvs[[1]],perl=TRUE) > 0) {
+		.mut.prot <- parseHGVS(data$hgvs)
+		.mut.coding <- data.frame(pos=rep(NA,nrow(data)),ancestral=rep(NA,nrow(data)),variant=rep(NA,nrow(data)))
+	} else {
+		stop("HGVS column does not parse!")
+	}
+
+	if ("multiPart" %in% colnames(.mut.coding)) {
+		.index.coding <- as.integer(sapply(strsplit(rownames(.mut.coding),"\\."),`[[`,1))
+		.nmut.coding <- table(.index.coding)
+	} else {#no multi-mutations should exist in this case
+		if (nrow(data) != nrow(.mut.coding)) {
+			stop("HGVS parse result does not match data! If you see this, report this as a bug.")
+		}
+		.index.coding <- 1:nrow(.data)
+		.nmut.coding <- rep(1,nrow(.data))
+	}
+
+	if ("multiPart" %in% colnames(.mut.prot)) {
+		.index.prot <- as.integer(sapply(strsplit(rownames(.mut.prot),"\\."),`[[`,1))
+		.nmut.prot <- table(.index.prot)
+		syns <- with(.mut.prot,unique(.index.prot[which(type %in% c("synonymous","invalid","NA"))]))
+		.nmut.prot[syns] <- 0
+	} else {#no multi-mutations should exist in this case
+		if (nrow(data) != nrow(.mut.prot)) {
+			stop("HGVS parse result does not match data! If you see this, report this as a bug.")
+		}
+		.index.prot <- 1:nrow(.data)
+		.nmut.prot <- rep(1,nrow(.data))
 	}
 	cat("done\n")
 
-	mutationCount <- function(min=0,max=Inf) {
-		if (min > max){
+	mutationCount <- function(min=0,max=Inf,level=c("protein","coding")) {
+		level <- match.arg(level,c("protein","coding"))
+		if (min > max) {
 			stop("min must be less than or equal to max")
 		}
-		filter <- .nmut >= min & .nmut <= max
+		filter <- switch(level,
+			protein = .nmut.prot >= min & .nmut.prot <= max,
+			coding = .nmut.coding >= min & .nmut.coding <= max
+		)
 		return(filter)
 	}
 
-	position <- function(min=-Inf,max=Inf,multi=c("any","all")) {
-		multi <- multi[[1]]
+	#TODO: Add support for affected ranges (e.g. for deletions)
+	position <- function(min=-Inf,max=Inf,multi=c("any","all"),level=c("protein","coding")) {
+		multi <- match.arg(multi,c("any","all"))
+		level <- match.arg(level,c("protein","coding"))
 		if (multi=="any") {
-			hits <- unique(.index[with(.mutations,which(start >= min & start <= max))])
+			if (level=="protein") {
+				hits <- unique(.index.prot[with(.mut.prot,which(start >= min & start <= max))])
+			} else {
+				hits <- unique(.index.coding[with(.mut.coding,which(start >= min & start <= max))])
+			}
 			return(1:nrow(data) %in% hits)
-		} else if (multi=="all") {
-			hits <- .index[with(.mutations,which(start >= min & start <= max))]
+		} else { # multi=="all"
+			if (level=="protein") {
+				hits <- .index.prot[with(.mut.prot,which(start >= min & start <= max))]
+			} else {
+				hits <- .index.coding[with(.mut.coding,which(start >= min & start <= max))]
+			}
 			hitCounts <- table(hits)
 			hitIDs <- as.numeric(names(hitCounts))
-			completeHits <- hitIDs[hitCounts == .nmut[hitIDs]]
+			if (level=="protein") {
+				completeHits <- hitIDs[hitCounts == .nmut.prot[hitIDs]]
+			} else {
+				completeHits <- hitIDs[hitCounts == .nmut.coding[hitIDs]]
+			}
 			return(1:nrow(data) %in% completeHits)
-		} else {
-			stop("Illegal argument: multi must be all or any")
-		}
+		} 
 	}
 
 	aas <- c(A="Ala",C="Cys",D="Asp",E="Glu",F="Phe",G="Gly",H="His",
 			I="Ile",K="Lys",L="Leu",M="Met",N="Asn",P="Pro",Q="Gln",R="Arg",
 			S="Ser",T="Thr",V="Val",W="Trp",Y="Tyr",`*`="Ter")
 
-	residues <- function(from=aas,to=aas,multi=c("any","all")) {
-		multi <- multi[[1]]
+	residues <- function(from=aas,to=aas,multi=c("any","all"),level=c("protein","coding")) {
+		multi <- match.arg(multi,c("any","all"))
+		level <- match.arg(level,c("protein","coding"))
 		if (multi=="any") {
-			hits <- unique(.index[with(.mutations,which(ancestral %in% from & variant %in% to))])
+			if (level=="protein") {
+				hits <- unique(.index.prot[with(.mut.prot,which(ancestral %in% from & variant %in% to))])
+			} else {
+				hits <- unique(.index.prot[with(.mut.coding,which(ancestral %in% from & variant %in% to))])
+			}
 			return(1:nrow(data) %in% hits)
 		} else if (multi=="all") {
-			hits <- .index[with(.mutations,which(ancestral %in% from & variant %in% to))]
+			if (level=="protein") {
+				hits <- .index.prot[with(.mut.prot,which(ancestral %in% from & variant %in% to))]
+			} else {
+				hits <- .index.prot[with(.mut.coding,which(ancestral %in% from & variant %in% to))]
+			}
 			hitCounts <- table(hits)
 			hitIDs <- as.numeric(names(hitCounts))
-			completeHits <- hitIDs[hitCounts == .nmut[hitIDs]]
+			if (level=="protein") {
+				completeHits <- hitIDs[hitCounts == .nmut.prot[hitIDs]]
+			} else {
+				completeHits <- hitIDs[hitCounts == .nmut.coding[hitIDs]]
+			}
 			return(1:nrow(data) %in% completeHits)
 		} else {
 			stop("Illegal argument: multi must be all or any")

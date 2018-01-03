@@ -1,4 +1,5 @@
 library(rapimave)
+library(hgvsParseR)
 
 context("MaveDB data filtering")
 
@@ -15,10 +16,25 @@ mockData <- with(pBuilder,data.frame(
 	stringsAsFactors=FALSE
 ))
 
+cBuilder <- new.hgvs.builder.c()
+hgvs.c <- with(cBuilder,c(
+		substitution(30,"A","C"),
+		cis(substitution(37,"A","T"),substitution(64,"C","G")),
+		cis(substitution(18,"G","A"),substitution(43,"A","C"),substitution(43,"C","T")),
+		cis(substitution(6,"C","A"),substitution(50,"G","A"))
+))
+mockData2 <- mockData
+mockData2$hgvs <- paste0(hgvs.c," (",mockData2$hgvs,")")
+
 test_that("mutationCount() works", {
 
 	mfilter <- new.mave.filter(mockData)
 	result <- which(mfilter$mutationCount(min=2))
+
+	expect_equivalent(result,c(2,3,4))
+
+	mfilter <- new.mave.filter(mockData2)
+	result <- which(mfilter$mutationCount(min=2,level="coding"))
 
 	expect_equivalent(result,c(2,3,4))
 })

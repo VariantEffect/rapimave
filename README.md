@@ -1,7 +1,7 @@
 # rapimave
 An R-package for API access to MaveDB, a database for Deep Mutational Scanning data (see https://www.mavedb.org/).
 This package allows programmatic access to the contents of the database, as well as basic filtering functions. 
-For documentation see https://github.com/jweile/hgvsParseR/blob/master/manual.pdf
+For documentation see https://github.com/jweile/rapimave/blob/master/manual.pdf
 
 ## Requires:
  * R 3.1.2 or higher
@@ -24,4 +24,4 @@ install_github("jweile/hgvsParseR")
 install_github("jweile/rapimave")
 
 ## Usage:
-See https://github.com/jweile/hgvsParseR/blob/master/manual.pdf
+See https://github.com/jweile/rapimave/blob/master/manual.pdf

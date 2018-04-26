@@ -19,24 +19,44 @@ Internal constructor that creates an immutable new ScoreSet object. This functio
 \details{
 A ScoreSet object offers the following getter functions:
 \itemize{
-  \item{getAuthors()} returns the usernames of the authors of this ScoreSet.
-  \item{getAccession()} returns the accession of this ScoreSet.
+  \item{getContributors()} returns a list of users that contributed to this ScoreSet.
+  \item{getURN()} returns the URN of this ScoreSet.
+  \item{getCreationDate()} returns the date when this record was originally created.
+  \item{getModificationDate()} returns the date when this record was last modified.
+  \item{getPublicationDate()} returns the date when this record was published.
+  \item{getCreatedBy()} returns the user who originally created this record.
+  \item{getModifiedBy()} returns the user who last modified this record.
+  \item{getMetadata()} returns the metadata for this record.
+  \item{getTitle()} returns the title of this record.
+  \item{getShortDescription()} returns a short description text of this record.
+  \item{getAbstract()} returns the abstract text of this record.
+  \item{getMethods()} returns the methods description text of this record.
+  \item{getKeywords()} returns the list of keywords associated with this record.
+  \item{getDOIs()} returns the list of Digital Object Identifiers (DOIs) associated with this record.
+  \item{getXrefSRA()} returns cross-references to the NCBI Short Read Archive (SRA).
+  \item{getXRefPubmed()} returns cross-references to Pubmed.
+  \item{getTarget()} returns the Target object for this scoreset, which describes the molecule that
+     that was targeted in the experiment.
   \item{getLicence()} returns the licencing information governing the use of this ScoreSet.
   \item{getCurrentVersion()} If a more up-to-date version of this ScoreSet exists, 
     that has since replaced it, this function will return the accession of the most recent version.
-  \item{getReplaces()} If this ScoreSet replaces an older ScoreSet, this function returns
+  \item{getPreviousVersion()} If this ScoreSet replaces an older ScoreSet, this function returns
     the accession of that older ScoreSet.
-  \item{getReplacedBy()} If this ScoreSet was replaced by newer ScoreSet, this function returns
+  \item{getNextVersion()} If this ScoreSet was replaced by newer ScoreSet, this function returns
     the accession of that newer ScoreSet in versioning history. To obtain the most recent version,
     use \code{getCurrentVersion()}.
   \item{getCountColumns()} returns the column names in the count table for this ScoreSet.
   \item{getScoreColumns()} returns the column names in the score table for this ScoreSet.
+  \item{getMetaDataColumns()} returns the column names in the metadata table for this ScoreSet.
+  \item{getVariantCount()} returns the number of variants in this scoreset, i.e. the number of rows
+     to be expected in the scores and counts tables.
+  \item{getExperiment()} returns the URN of the experiment record to which this scoreset belongs.
 }
 }
 \examples{
 \dontrun{
 mave <- new.rapimave()
-set1 <- mave$getScoreSet("SCS000001A.2")
+set1 <- mave$getScoreSet("urn:mavedb:00000001-a-1")
 scoreColNames <- set1$getScoreColumns()
 }
 }

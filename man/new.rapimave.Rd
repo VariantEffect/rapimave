@@ -32,21 +32,21 @@ The resulting object offers the following functions:
     See \code{\link{new.user}} for available methods on user objects.
 	\item{getAllExperimentSets()} returns a list of all ExperimentSet objects.
     See \code{\link{new.experimentSet}} for available methods on ExperimentSet objects.
-	\item{getExperimentSet(accession)} returns the ExperimentSet object for the given accession.
-    ExperimentSet accessions usually follow the syntax /EXPS\d+/ .
+	\item{getExperimentSet(urn)} returns the ExperimentSet object for the given URN.
+    ExperimentSet URNs usually follow the syntax /EXPS\d+/ .
     See \code{\link{new.experimentSet}} for available methods on ExperimentSet objects.
 	\item{getAllExperiments()} returns a list of all Experiment objects.
     See \code{\link{new.experiment}} for available methods on Experiment objects.
-	\item{getExperiment(accession)} returns the Experiment object for the given accession.
-    Experiment accessions usually follow the syntax /EXP\d+\w[1]/ .
+	\item{getExperiment(urn)} returns the Experiment object for the given URN.
+    Experiment URNs usually follow the syntax /EXP\d+\w[1]/ .
     See \code{\link{new.experiment}} for available methods on Experiment objects.
 	\item{getAllScoreSets()} returns a list of all ScoreSet objects.
     See \code{\link{new.scoreSet}} for available methods on ScoreSet objects.
-	\item{getScoreSet(accession)} returns the ScoreSet object for the given accession.
-    ScoreSet accessions usually follow the syntax /SCS\d+\w[1]\.\d[1]/ .
+	\item{getScoreSet(urn)} returns the ScoreSet object for the given URN.
+    ScoreSet URNs usually follow the syntax /SCS\d+\w[1]\.\d[1]/ .
     See \code{\link{new.scoreSet}} for available methods on ScoreSet objects.
-	\item{getScores(accession)} returns a \code{data.frame} with the scores for the given ScoreSet accession
-	\item{getCounts(accession)} returns a \code{data.frame} with the counts for the given ScoreSet accession
+	\item{getScores(urn)} returns a \code{data.frame} with the scores for the given ScoreSet URN
+	\item{getCounts(urn)} returns a \code{data.frame} with the counts for the given ScoreSet URN
 }
 }
 \examples{

@@ -12,8 +12,10 @@
 #'   \item{getUsername()} return the username.
 #'   \item{getFirstName()} return the user's first name.
 #'   \item{getLastName()} return the user's last name.
+#'   \item{getDisplayName()} return the user's preferred display name.
 #'   \item{getExperimentSets()} return the ExperimentSets attributed to the user.
 #'   \item{getExperiments()} return the Experiments attributed to the user.
+#'   \item{getScoreSets()} return the ScoreSets attributed to the user.
 #' }
 #'
 #' @return a new R-API MaveDB user object.
@@ -25,17 +27,40 @@
 #' }
 new.user <- function(data) {
 	.data <- data
-	expectedFields <- c("username","first_name","last_name","experimentsets","experiments")
+	expectedFields <- c(
+		"username","first_name","last_name","display_name",
+		"contributor_experimentsets","contributor_experiments",
+		"contributor_scoresets"
+	)
+	#field names can differ!
+	expectedFieldsAlt <- c(
+		"username","first_name","last_name","display_name",
+		"experimentsets","experiments",
+		"scoresets"
+	)
 	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
-		stop("Illegal argument for new.user()")
+		if (!is.list(data) || !all(expectedFieldsAlt %in% names(.data))) {
+			stop("Illegal argument for new.user()")
+		}
+		return(structure(list(
+			getUsername=function() .data$username,
+			getFirstName=function() .data$first_name,
+			getLastName=function() .data$last_name,
+			getDisplayName=function() .data$display_name,
+			getExperimentSets=function() .data$experimentsets,
+			getExperiments=function() .data$experiments,
+			getScoreSets=function() .data$scoresets
+		),class="rapimaveUser"))
 	}
 	#TODO: Validate data!
 	structure(list(
 		getUsername=function() .data$username,
 		getFirstName=function() .data$first_name,
 		getLastName=function() .data$last_name,
-		getExperimentSets=function() .data$experimentsets,
-		getExperiments=function() .data$experiments
+		getDisplayName=function() .data$display_name,
+		getExperimentSets=function() .data$contributor_experimentsets,
+		getExperiments=function() .data$contributor_experiments,
+		getScoreSets=function() .data$contributor_scoresets
 	),class="rapimaveUser")
 }
 
@@ -69,29 +94,82 @@ print.rapimaveUser <- function(obj) {
 #'
 #' A ExperimentSet object offers the following getter functions:
 #' \itemize{
-#'   \item{getExperiments()} returns the accessions of the experiments belonging to this ExperimentSet.
-#'   \item{getAuthors()} returns the usernames of the authors of this ExperimentSet.
-#'   \item{getAccession()} returns the accession of this ExperimentSet.
+#'   \item{getContributors()} returns a list of users that contributed to this record.
+#'   \item{getURN()} returns the URN of this record.
+#'   \item{getCreationDate()} returns the date when this record was originally created.
+#'   \item{getModificationDate()} returns the date when this record was last modified.
+#'   \item{getPublicationDate()} returns the date when this record was published.
+#'   \item{getCreatedBy()} returns the user who originally created this record.
+#'   \item{getModifiedBy()} returns the user who last modified this record.
+#'   \item{getMetadata()} returns the metadata for this record.
+#'   \item{getTitle()} returns the title of this record.
+#'   \item{getShortDescription()} returns a short description text of this record.
+#'   \item{getAbstract()} returns the abstract text of this record.
+#'   \item{getMethods()} returns the methods description text of this record.
+#'   \item{getKeywords()} returns the list of keywords associated with this record.
+#'   \item{getDOIs()} returns the list of Digital Object Identifiers (DOIs) associated with this record.
+#'   \item{getXrefSRA()} returns cross-references to the NCBI Short Read Archive (SRA).
+#'   \item{getXRefPubmed()} returns cross-references to Pubmed.
+#'   \item{getExperiments()} returns the URNs of the experiments belonging to this ExperimentSet.
 #' }
 #'
 #' @return a new R-API MaveDB ExperimentSet object.
 #' @examples
 #' \dontrun{
 #' mave <- new.rapimave()
-#' set1 <- mave$getExperimentSet("EXPS000001")
-#' expAccessions <- set1$getExperiments()
+#' set1 <- mave$getExperimentSet("urn:mavedb:00000001")
+#' expURNs <- set1$getExperiments()
 #' }
 new.experimentSet <- function(data) {
 	.data <- data
-	expectedFields <- c("experiments","authors","accession")
-	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
+
+	expectedFields <- c(
+		"creation_date","modification_date","urn","publish_date","created_by",
+		"modified_by","extra_metadata","abstract_text","method_text","short_description",
+		"title","keywords","sra_ids","doi_ids","pubmed_ids","contributors","experiments"
+	)
+	if (!is.list(.data) || !all(expectedFields %in% names(.data))) {
 		stop("Illegal argument for new.experimentSet()")
 	}
 	#TODO: Validate data!
 	structure(list(
-		getExperiments=function() .data$experiments,
-		getAuthors=function() .data$authors,
-		getAccession=function() .data$accession
+		getAccession=function() {
+			.Deprecated("getURN")
+			.data$urn
+		},
+		getURN=function() .data$urn,
+		getAuthors=function() {
+			.Deprecated("getContributors")
+			lapply(.data$contributors,new.user)
+		},
+		getContributors=function() lapply(.data$contributors,new.user),
+		getCreationDate=function() .data$creation_date,
+		getModificationDate=function() .data$modification_date,
+		getPublicationDate=function() .data$publish_date,
+		getCreatedBy=function() .data$created_by,
+		getModifiedBy=function() .data$modified_by,
+		getMetadata=function() .data$extra_metadata,
+		getTitle=function() .data$title,
+		getShortDescription=function() .data$short_description,
+		getAbstract=function() .data$abstract_text,
+		getMethods=function() .data$method_text,
+		getKeywords=function() .data$keywords,
+		getDOIs=function() {
+			if (!is.null(data$doi_ids)) {
+				lapply(.data$doi_ids,new.xref)
+			} else NULL
+		},
+		getXRefSRA=function() {
+			if (!is.null(data$sra_ids)) {
+				lapply(.data$sra_ids,new.xref)
+			} else NULL
+		},
+		getXRefPubmed=function() {
+			if (!is.null(data$pubmed_ids)) {
+				lapply(.data$pubmed_ids,new.xref)
+			} else NULL
+		},ds,
+		getExperiments=function() .data$experiments
 	),class="rapimaveExpSet")
 }
 
@@ -105,10 +183,10 @@ new.experimentSet <- function(data) {
 #' @examples
 #' \dontrun{
 #' mave <- new.rapimave()
-#' print(mave$getExperimentSet("EXPS000001"))
+#' print(mave$getExperimentSet("urn:mavedb:00000001"))
 #' }
 print.rapimaveExpSet <- function(obj) {
-	cat("MaveDB ExperimentSet",obj$getAccession(),"\n")
+	cat("MaveDB ExperimentSet",obj$getURN(),"\n")
 }
 
 #' New R-API MaveDB Experiment
@@ -121,31 +199,86 @@ print.rapimaveExpSet <- function(obj) {
 #'
 #' A Experiment object offers the following getter functions:
 #' \itemize{
-#'   \item{getScoreSets()} return the list of accessions of the Experiment's ScoreSets.
-#'   \item{getAuthors()} returns the usernames of the authors of this Experiment.
-#'   \item{getAccession()} return the accession of this Experiment.
+#'   \item{getContributors()} returns a list of users that contributed to this record.
+#'   \item{getURN()} returns the URN of this record.
+#'   \item{getCreationDate()} returns the date when this record was originally created.
+#'   \item{getModificationDate()} returns the date when this record was last modified.
+#'   \item{getPublicationDate()} returns the date when this record was published.
+#'   \item{getCreatedBy()} returns the user who originally created this record.
+#'   \item{getModifiedBy()} returns the user who last modified this record.
+#'   \item{getMetadata()} returns the metadata for this record.
+#'   \item{getTitle()} returns the title of this record.
+#'   \item{getShortDescription()} returns a short description text of this record.
+#'   \item{getAbstract()} returns the abstract text of this record.
+#'   \item{getMethods()} returns the methods description text of this record.
+#'   \item{getKeywords()} returns the list of keywords associated with this record.
+#'   \item{getDOIs()} returns the list of Digital Object Identifiers (DOIs) associated with this record.
+#'   \item{getXrefSRA()} returns cross-references to the NCBI Short Read Archive (SRA).
+#'   \item{getXRefPubmed()} returns cross-references to Pubmed.
 #'   \item{getExperimentSet()} return the accession of the ExperimentSet to which this Experiment belongs.
+#'   \item{getScoreSets()} return the list of URNs of the Experiment's ScoreSets.
 #' }
 #'
 #' @return a new R-API MaveDB experiment object.
 #' @examples
 #' \dontrun{
 #' mave <- new.rapimave()
-#' exp1 <- mave$getExperiment("EXP000001A")
+#' exp1 <- mave$getExperiment("urn:mavedb:00000001-a")
 #' authorIds <- exp1$getAuthors()
 #' }
 new.experiment <- function(data) {
 	.data <- data
-	expectedFields <- c("scoresets","authors","accession","experimentset")
+	# expectedFields <- c("scoresets","authors","accession","experimentset")
+	expectedFields <- c("creation_date","modification_date","urn",
+		"publish_date","created_by","modified_by",
+		"extra_metadata","abstract_text","method_text",
+		"short_description","title","keywords",
+		"sra_ids","doi_ids","pubmed_ids",
+		"contributors","scoresets","experimentset"
+	)
 	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
 		stop("Illegal argument for new.experiment()")
 	}
 	#TODO: Validate data!
 	structure(list(
-		getScoreSets=function() .data$scoresets,
-		getAuthors=function() .data$authors,
-		getAccession=function() .data$accession,
-		getExperimentSet=function() .data$experimentset
+		getAccession=function() {
+			.Deprecated("getURN")
+			.data$urn
+		},
+		getURN=function() .data$urn,
+		getAuthors=function() {
+			.Deprecated("getContributors")
+			lapply(.data$contributors,new.user)
+		},
+		getContributors=function() lapply(.data$contributors,new.user),
+		getCreationDate=function() .data$creation_date,
+		getModificationDate=function() .data$modification_date,
+		getPublicationDate=function() .data$publish_date,
+		getCreatedBy=function() .data$created_by,
+		getModifiedBy=function() .data$modified_by,
+		getMetadata=function() .data$extra_metadata,
+		getTitle=function() .data$title,
+		getShortDescription=function() .data$short_description,
+		getAbstract=function() .data$abstract_text,
+		getMethods=function() .data$method_text,
+		getKeywords=function() .data$keywords,
+		getDOIs=function() {
+			if (!is.null(data$doi_ids)) {
+				lapply(.data$doi_ids,new.xref)
+			} else NULL
+		},
+		getXRefSRA=function() {
+			if (!is.null(data$sra_ids)) {
+				lapply(.data$sra_ids,new.xref)
+			} else NULL
+		},
+		getXRefPubmed=function() {
+			if (!is.null(data$pubmed_ids)) {
+				lapply(.data$pubmed_ids,new.xref)
+			} else NULL
+		},
+		getExperimentSet=function() .data$experimentset,
+		getScoreSets=function() .data$scoresets
 	),class="rapimaveExperiment")
 }
 
@@ -159,10 +292,10 @@ new.experiment <- function(data) {
 #' @examples
 #' \dontrun{
 #' mave <- new.rapimave()
-#' print(mave$getExperiment("EXP000001A"))
+#' print(mave$getExperiment("urn:mavedb:00000001-a"))
 #' }
 print.rapimaveExperiment <- function(obj) {
-	cat("MaveDB Experiment",obj$getAccession(),"\n")
+	cat("MaveDB Experiment",obj$getURN(),"\n")
 }
 
 #' New R-API MaveDB ScoreSet
@@ -175,46 +308,127 @@ print.rapimaveExperiment <- function(obj) {
 #'
 #' A ScoreSet object offers the following getter functions:
 #' \itemize{
-#'   \item{getAuthors()} returns the usernames of the authors of this ScoreSet.
-#'   \item{getAccession()} returns the accession of this ScoreSet.
+#'   \item{getContributors()} returns a list of users that contributed to this ScoreSet.
+#'   \item{getURN()} returns the URN of this ScoreSet.
+#'   \item{getCreationDate()} returns the date when this record was originally created.
+#'   \item{getModificationDate()} returns the date when this record was last modified.
+#'   \item{getPublicationDate()} returns the date when this record was published.
+#'   \item{getCreatedBy()} returns the user who originally created this record.
+#'   \item{getModifiedBy()} returns the user who last modified this record.
+#'   \item{getMetadata()} returns the metadata for this record.
+#'   \item{getTitle()} returns the title of this record.
+#'   \item{getShortDescription()} returns a short description text of this record.
+#'   \item{getAbstract()} returns the abstract text of this record.
+#'   \item{getMethods()} returns the methods description text of this record.
+#'   \item{getKeywords()} returns the list of keywords associated with this record.
+#'   \item{getDOIs()} returns the list of Digital Object Identifiers (DOIs) associated with this record.
+#'   \item{getXrefSRA()} returns cross-references to the NCBI Short Read Archive (SRA).
+#'   \item{getXRefPubmed()} returns cross-references to Pubmed.
+#'   \item{getTarget()} returns the Target object for this scoreset, which describes the molecule that
+#'      that was targeted in the experiment.
 #'   \item{getLicence()} returns the licencing information governing the use of this ScoreSet.
 #'   \item{getCurrentVersion()} If a more up-to-date version of this ScoreSet exists, 
 #'     that has since replaced it, this function will return the accession of the most recent version.
-#'   \item{getReplaces()} If this ScoreSet replaces an older ScoreSet, this function returns
+#'   \item{getPreviousVersion()} If this ScoreSet replaces an older ScoreSet, this function returns
 #'     the accession of that older ScoreSet.
-#'   \item{getReplacedBy()} If this ScoreSet was replaced by newer ScoreSet, this function returns
+#'   \item{getNextVersion()} If this ScoreSet was replaced by newer ScoreSet, this function returns
 #'     the accession of that newer ScoreSet in versioning history. To obtain the most recent version,
 #'     use \code{getCurrentVersion()}.
 #'   \item{getCountColumns()} returns the column names in the count table for this ScoreSet.
 #'   \item{getScoreColumns()} returns the column names in the score table for this ScoreSet.
+#'   \item{getMetaDataColumns()} returns the column names in the metadata table for this ScoreSet.
+#'   \item{getVariantCount()} returns the number of variants in this scoreset, i.e. the number of rows
+#'      to be expected in the scores and counts tables.
+#'   \item{getExperiment()} returns the URN of the experiment record to which this scoreset belongs.
 #' }
 #'
 #' @return a new R-API MaveDB ScoreSet object.
 #' @examples
 #' \dontrun{
 #' mave <- new.rapimave()
-#' set1 <- mave$getScoreSet("SCS000001A.2")
+#' set1 <- mave$getScoreSet("urn:mavedb:00000001-a-1")
 #' scoreColNames <- set1$getScoreColumns()
 #' }
 new.scoreSet <- function(data) {
 	.data <- data
+	# expectedFields <- c(
+	# 	"authors","accession","licence","current_version",
+	# 	"replaces","replaced_by","count_columns","score_columns"
+	# )
 	expectedFields <- c(
-		"authors","accession","licence","current_version",
-		"replaces","replaced_by","count_columns","score_columns"
+		"creation_date","modification_date","urn",
+		"publish_date","created_by","modified_by",
+		"extra_metadata","abstract_text","method_text",
+		"short_description","title","keywords",
+		"sra_ids","doi_ids","pubmed_ids",
+		"contributors","licence","target",
+		"score_columns","count_columns","metadata_columns",
+		"previous_version","next_version","current_version",
+		"variant_count","experiment"
 	)
 	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
 		stop("Illegal argument for new.experimentSet()")
 	}
 	#TODO: Validate data!
 	structure(list(
-		getAuthors=function() .data$authors,
-		getAccession=function() .data$accession,
+		getAccession=function() {
+			.Deprecated("getURN")
+			.data$urn
+		},
+		getURN=function() .data$urn,
+		getAuthors=function() {
+			.Deprecated("getContributors")
+			lapply(.data$contributors,new.user)
+		},
+		getContributors=function() lapply(.data$contributors,new.user),
+		getCreationDate=function() .data$creation_date,
+		getModificationDate=function() .data$modification_date,
+		getPublicationDate=function() .data$publish_date,
+		getCreatedBy=function() .data$created_by,
+		getModifiedBy=function() .data$modified_by,
+		getMetadata=function() .data$extra_metadata,
+		getTitle=function() .data$title,
+		getShortDescription=function() .data$short_description,
+		getAbstract=function() .data$abstract_text,
+		getMethods=function() .data$method_text,
+		getKeywords=function() .data$keywords,
+		getDOIs=function() {
+			if (!is.null(data$doi_ids)) {
+				lapply(.data$doi_ids,new.xref)
+			} else NULL
+		},
+		getXRefSRA=function() {
+			if (!is.null(data$sra_ids)) {
+				lapply(.data$sra_ids,new.xref)
+			} else NULL
+		},
+		getXRefPubmed=function() {
+			if (!is.null(data$pubmed_ids)) {
+				lapply(.data$pubmed_ids,new.xref)
+			} else NULL
+		},
+		getTarget=function() {
+			if (!is.null(.data$target)) {
+				new.target(.data$target)
+			} else NULL
+		},
 		getLicence=function() .data$licence,
 		getCurrentVersion=function() .data$current_version,
-		getReplaces=function() .data$replaces,
-		getReplacedBy=function() .data$replaced_by,
+		getPreviousVersion=function() .data$previous_version,
+		getReplaces=function() {
+			.Deprecated("getPreviousVersion")
+			.data$previous_version
+		},
+		getReplacedBy=function() {
+			.Deprecated("getNextVersion")
+			.data$next_version
+		},
+		getNextVersion=function() .data$next_version,
 		getCountColumns=function() .data$count_columns,
-		getScoreColumns=function() .data$score_columns
+		getScoreColumns=function() .data$score_columns,
+		getMetaDataColumns=function() .data$metadata_columns,
+		getVariantCount=function() .data$variant_count,
+		getExperiment=function() .data$experiment
 	),class="rapimaveScoreSet")
 }
 
@@ -231,8 +445,224 @@ new.scoreSet <- function(data) {
 #' print(mave$getScoreSet("SCS000001A.2"))
 #' }
 print.rapimaveScoreSet <- function(obj) {
-	cat("MaveDB ScoreSet ",obj$getAccession(),"\n")
+	cat("MaveDB ScoreSet ",obj$getURN(),"\n")
 }
+
+
+#' New R-API MaveDB Target
+#'
+#' Internal constructor that creates an immutable new Target object. This function is not exported
+#'   and should not be called outside of the rapimave package itself. Target objects are generated
+#'   by the getTarget() method of a scoreset object (which itself
+#'	 is generated using the \code{getAllScoreSets()} and \code{getScoreSet()} methods of a rapimave 
+#'   object). However, this section explains the
+#'   functions that are available for these objects.
+#'
+#' A ScoreSet object offers the following getter functions:
+#' \itemize{
+#'   \item{getName()} returns the name of the target
+#'   \item{getSequence()} returns wildtype sequence of the target
+#'   \item{getXrefUniprot()} returns a Xref object for Uniprot
+#'   \item{getXrefEnsembl()} returns a Xref object for Ensembl
+#'   \item{getXrefRefseq()} returns a Xref object for Refseq
+#'   \item{getReferenceMaps()} returns a list of reference map objects that describe how this 
+#'      target maps to different reference genomes.
+#'   \item{getScoreset()} retunrs the URN of the scoreset to which this target belongs.
+#' }
+#'
+#' @return a new R-API MaveDB Target object.
+new.target <- function(data) {
+	.data <- data
+	expectedFields <- c(
+		"name","wt_sequence","uniprot","ensembl",
+		"refseq","reference_maps","scoreset"
+	)
+	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
+		stop("Illegal argument for new.target()")
+	}
+
+	structure(list(
+		getName=function() .data$name,
+		getSequence=function() .data$wt_sequence,
+		getXrefUniprot=function() {
+			if (!is.null(data$uniprot)) {
+				new.xref(.data$uniprot)
+			} else NULL
+		},
+		getXrefEnsembl=function() {
+			if (!is.null(data$ensembl)) {
+				new.xref(.data$ensembl)
+			} else NULL
+		},
+		getXrefRefseq=function() {
+			if (!is.null(data$refseq)) {
+				new.xref(.data$refseq)
+			} else NULL
+		},
+		getReferenceMaps=function() {
+			if (!is.null(.data$reference_maps)) {
+				lapply(.data$reference_maps,new.refmap)
+			} else NULL
+		},
+		getScoreset=function() .data$scoreset
+	),class="rapimaveTarget")
+}
+
+#' Print R-API MaveDB target object
+#'
+#' Prints a human-readable summary of a R-API MaveDB target object:
+#'
+#' @param obj the object to print
+#' @keywords MaveDB print
+#' @export
+print.rapimaveTarget <- function(obj) {
+	cat("MaveDB Target ",obj$getName()," of scoreset ",obj$getScoreset(),"\n")
+}
+
+
+
+#' New R-API MaveDB ReferenceMap
+#'
+#' Internal constructor that creates an immutable new ReferenceMap object. This function is not exported
+#'   and should not be called outside of the rapimave package itself. ReferenceMap objects are generated
+#'   by the getReferenceMap() method of a target object (which itself
+#'	 is generated using the \code{getTarget()} method on a scoreset object). However, this section explains the
+#'   functions that are available for these objects.
+#'
+#' A ScoreSet object offers the following getter functions:
+#' \itemize{
+#'   \item{getGenome()} returns the genome object for this reference map
+#'   \item{isPrimary()} returns whether this is the primary reference map for this scoreset
+#'   \item{getIntervals()} returns a data.frame listing the intervals in the genome to which 
+#'      the target is mapped.
+#' }
+#'
+#' @return a new R-API MaveDB ReferenceMap object.
+new.refmap <- function(data) {
+	.data <- data
+	expectedFields <- c(
+		"genome","is_primary","intervals"
+	)
+	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
+		stop("Illegal argument for new.refmap()")
+	}
+	structure(list(
+		getGenome=function() new.genome(.data$genome),
+		isPrimary=function() .data$is_primary,
+		getIntervals=function() do.call(rbind,.data$intervals)
+	),class="rapimaveRefmap")
+}
+
+
+#' Print R-API MaveDB reference map object
+#'
+#' Prints a human-readable summary of a R-API MaveDB reference map object:
+#'
+#' @param obj the object to print
+#' @keywords MaveDB print
+#' @export
+print.rapimaveRefmap <- function(obj) {
+	cat("MaveDB ReferenceMap\n")
+}
+
+
+#' New R-API MaveDB genome
+#'
+#' Internal constructor that creates an immutable new genome object. This function is not exported
+#'   and should not be called outside of the rapimave package itself. Genome objects are generated
+#'   by the getGenome() method of a reference map object (which itself
+#'	 is generated using the \code{get.referenceMaps()} method on a target object). However, this section explains the
+#'   functions that are available for these objects.
+#'
+#' A ScoreSet object offers the following getter functions:
+#' \itemize{
+#'   \item{getShortName()} returns the name of this genome object
+#'   \item{getSpecies()} returns the species to which this genome belongs.
+#'   \item{getXRefEnsembl()} returns the a cross-reference object for Ensembl (if it exists).
+#'   \item{getXrefRefseq()} returns the a cross-reference object for Refseq (if it exists).
+#' }
+#'
+#' @return a new R-API MaveDB genome object.
+new.genome <- function(data) {
+	.data <- data
+	expectedFields <- c(
+		"short_name","species_name","ensembl","refseq"
+	)
+	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
+		stop("Illegal argument for new.genome()")
+	}
+	structure(list(
+		getShortName=function() .data$short_name,
+		getSpecies=function() .data$species_name,
+		getXRefEnsembl=function() {
+			if (!is.null(.data$ensembl)) {
+				new.xref(.data$ensembl)
+			} else NULL
+		},
+		getXRefRefseq=function() {
+			if (!is.null(.data$refseq)) {
+				new.xref(.data$refseq)
+			} else NULL
+		}
+	),class="rapimaveGenome")
+}
+
+#' Print R-API MaveDB Genome object
+#'
+#' Prints a human-readable summary of a R-API MaveDB genome object:
+#'
+#' @param obj the object to print
+#' @keywords MaveDB print
+#' @export
+print.rapimaveGenome <- function(obj) {
+	cat("MaveDB Genome",obj$getShortName(),"\n")
+}
+
+
+#' New R-API MaveDB cross-reference
+#'
+#' Internal constructor that creates an immutable new Xref object. This function is not exported
+#'   and should not be called outside of the rapimave package itself. Xref objects are generated
+#'   by various methods of a rapimave object (which itself
+#'	 is generated using the \code{new.rapimave()} constructor). However, this section explains the
+#'   functions that are available for these objects.
+#'
+#' A ScoreSet object offers the following getter functions:
+#' \itemize{
+#'   \item{getID()} returns the Identifier or Accession of this cross-reference
+#'   \item{getURL()} returns the database URL
+#'   \item{getDB()} returns the database name
+#'   \item{getDBVersion()} returns the database version
+#' }
+#'
+#' @return a new R-API MaveDB Xref object.
+new.xref <- function(data) {
+	.data <- data
+	expectedFields <- c(
+		"identifier","url","dbversion","dbname"
+	)
+	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
+		stop("Illegal argument for new.xref()")
+	}
+	structure(list(
+		getID=function() .data$identifier,
+		getURL=function() .data$url,
+		getDB=function() .data$dbname,
+		getDBVersion=function() .data$dbversion
+	),class="rapimaveXref")
+}
+
+#' Print R-API MaveDB cross-reference
+#'
+#' Prints a human-readable summary of a R-API MaveDB cross-reference object:
+#'
+#' @param obj the object to print
+#' @keywords MaveDB print
+#' @export
+print.rapimaveXref <- function(obj) {
+	with(obj,cat(getDB(),"::",getID(),"\n"))
+}
+
 
 #' MaveDB R-API client constructor
 #'
@@ -247,21 +677,21 @@ print.rapimaveScoreSet <- function(obj) {
 #'     See \code{\link{new.user}} for available methods on user objects.
 #' 	\item{getAllExperimentSets()} returns a list of all ExperimentSet objects.
 #'     See \code{\link{new.experimentSet}} for available methods on ExperimentSet objects.
-#' 	\item{getExperimentSet(accession)} returns the ExperimentSet object for the given accession.
-#'     ExperimentSet accessions usually follow the syntax /EXPS\d+/ .
+#' 	\item{getExperimentSet(urn)} returns the ExperimentSet object for the given URN.
+#'     ExperimentSet URNs usually follow the syntax /EXPS\d+/ .
 #'     See \code{\link{new.experimentSet}} for available methods on ExperimentSet objects.
 #' 	\item{getAllExperiments()} returns a list of all Experiment objects.
 #'     See \code{\link{new.experiment}} for available methods on Experiment objects.
-#' 	\item{getExperiment(accession)} returns the Experiment object for the given accession.
-#'     Experiment accessions usually follow the syntax /EXP\d+\w[1]/ .
+#' 	\item{getExperiment(urn)} returns the Experiment object for the given URN.
+#'     Experiment URNs usually follow the syntax /EXP\d+\w[1]/ .
 #'     See \code{\link{new.experiment}} for available methods on Experiment objects.
 #' 	\item{getAllScoreSets()} returns a list of all ScoreSet objects.
 #'     See \code{\link{new.scoreSet}} for available methods on ScoreSet objects.
-#' 	\item{getScoreSet(accession)} returns the ScoreSet object for the given accession.
-#'     ScoreSet accessions usually follow the syntax /SCS\d+\w[1]\.\d[1]/ .
+#' 	\item{getScoreSet(urn)} returns the ScoreSet object for the given URN.
+#'     ScoreSet URNs usually follow the syntax /SCS\d+\w[1]\.\d[1]/ .
 #'     See \code{\link{new.scoreSet}} for available methods on ScoreSet objects.
-#' 	\item{getScores(accession)} returns a \code{data.frame} with the scores for the given ScoreSet accession
-#' 	\item{getCounts(accession)} returns a \code{data.frame} with the counts for the given ScoreSet accession
+#' 	\item{getScores(urn)} returns a \code{data.frame} with the scores for the given ScoreSet URN
+#' 	\item{getCounts(urn)} returns a \code{data.frame} with the counts for the given ScoreSet URN
 #' }
 #'
 #' @param baseURL MaveDB API base-URL. Defaults to "https://www.mavedb.org/api/"
@@ -285,19 +715,23 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		set_config(config(ssl_verifypeer = 0L))
 	}
 
+	#TODO: implement ORCID checksum checking?
+
+	#Regular expressions for URNs
+	orcidRE <- "^\\d{4}-\\d{4}-\\d{4}-\\d{3}[0-9X]$"
+	expsRE  <- "^urn:mavedb:\\d{8}$"
+	expRE   <- "^urn:mavedb:\\d{8}-\\w+$"
+	scsRE   <- "^urn:mavedb:\\d{8}-\\w+-\\d+$"
+
 	getAllUsers <- function() {
-		url <- paste0(baseURL,"get/user/all/")
-		htr <- GET(url)
+		url <- paste0(baseURL,"users/")
+		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
-			if (length(returnData) > 0 && "users" %in% names(returnData)) {
-				if (length(returnData$users) > 0) {
-					return(lapply(returnData$users, new.user))
-				} else {
-					return(list())
-				}
+			if (length(returnData) > 0) {
+				return(lapply(returnData, new.user))
 			} else {
-				stop("Unexpected return value: ",returnData)
+				return(list())
 			}
 		} else {
 			stop("MaveDB server message: ",http_status(htr)$message)
@@ -305,8 +739,11 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 	}
 
 	getUser <- function(username) {
-		url <- paste0(baseURL,"get/user/",username,"/")
-		htr <- GET(url)
+		if (!grepl(orcidRE,username)) {
+			stop(username," is not a valid ORCID!")
+		}
+		url <- paste0(baseURL,username,"/")
+		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
 			if (length(returnData) > 0) {
@@ -322,27 +759,26 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 	}
 
 	getAllExperimentSets <- function() {
-		url <- paste0(baseURL,"get/experimentset/all/")
-		htr <- GET(url)
+		url <- paste0(baseURL,"experimentsets/")
+		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
-			if (length(returnData) > 0 && "experimentsets" %in% names(returnData)) {
-				if (length(returnData$experimentsets) > 0) {
-					return(lapply(returnData$experimentsets, new.experimentSet))
-				} else {
-					return(list())
-				}
+			if (length(returnData) > 0) {
+				return(lapply(returnData, new.experimentSet))
 			} else {
-				stop("Unexpected return value: ",returnData)
+				return(list())
 			}
 		} else {
 			stop("MaveDB server message: ",http_status(htr)$message)
 		}
 	}
 
-	getExperimentSet <- function(accession) {
-		url <- paste0(baseURL,"get/experimentset/",accession,"/")
-		htr <- GET(url)
+	getExperimentSet <- function(urn) {
+		if (!grepl(expsRE,urn)) {
+			stop(urn," is not a valid Experiment Set URN!")
+		}
+		url <- paste0(baseURL,urn,"/")
+		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
 			if (length(returnData) > 0) {
@@ -358,27 +794,26 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 	}
 
 	getAllExperiments <- function() {
-		url <- paste0(baseURL,"get/experiment/all/")
-		htr <- GET(url)
+		url <- paste0(baseURL,"experiments/")
+		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
-			if (length(returnData) > 0 && "experiments" %in% names(returnData)) {
-				if (length(returnData$experiments) > 0) {
-					return(lapply(returnData$experiments, new.experiment))
-				} else {
-					return(list())
-				}
+			if (length(returnData) > 0) {
+				return(lapply(returnData, new.experiment))
 			} else {
-				stop("Unexpected return value: ",returnData)
+				return(list())
 			}
 		} else {
 			stop("MaveDB server message: ",http_status(htr)$message)
 		}
 	}
 
-	getExperiment <- function(accession) {
-		url <- paste0(baseURL,"get/experiment/",accession,"/")
-		htr <- GET(url)
+	getExperiment <- function(urn) {
+		if (!grepl(expRE,urn)) {
+			stop(urn," is not a valid Experiment URN!")
+		}
+		url <- paste0(baseURL,urn,"/")
+		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
 			if (length(returnData) > 0) {
@@ -394,27 +829,26 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 	}
 
 	getAllScoreSets <- function() {
-		url <- paste0(baseURL,"get/scoreset/all/")
-		htr <- GET(url)
+		url <- paste0(baseURL,"scoresets/")
+		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
-			if (length(returnData) > 0 && "scoresets" %in% names(returnData)) {
-				if (length(returnData$scoresets) > 0) {
-					return(lapply(returnData$scoresets, new.scoreSet))
-				} else {
-					return(list())
-				}
+			if (length(returnData) > 0) {
+				return(lapply(returnData, new.scoreSet))
 			} else {
-				stop("Unexpected return value: ",returnData)
+				return(list())
 			}
 		} else {
 			stop("MaveDB server message: ",http_status(htr)$message)
 		}
 	}
 
-	getScoreSet <- function(accession) {
-		url <- paste0(baseURL,"get/scoreset/",accession,"/")
-		htr <- GET(url)
+	getScoreSet <- function(urn) {
+		if (!grepl(scsRE,urn)) {
+			stop(urn," is not a valid ScoreSet URN!")
+		}
+		url <- paste0(baseURL,urn,"/")
+		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
 			if (length(returnData) > 0) {
@@ -429,8 +863,11 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		}
 	}
 
-	getScores <- function(accession) {
-		url <- paste0(baseURL,"get/scoreset/",accession,"/scores/")
+	getScores <- function(urn) {
+		if (!grepl(scsRE,urn)) {
+			stop(urn," is not a valid ScoreSet URN!")
+		}
+		url <- paste0(baseURL,urn,"/scores/")
 		htr <- GET(url)
 		if (http_status(htr)$category == "Success") {
 			returnData <- content(htr,as="text",encoding=encoding)
@@ -449,8 +886,34 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		}
 	}
 
-	getCounts <- function(accession) {
-		url <- paste0(baseURL,"get/scoreset/",accession,"/counts/")
+	getCounts <- function(urn) {
+		if (!grepl(scsRE,urn)) {
+			stop(urn," is not a valid ScoreSet URN!")
+		}
+		url <- paste0(baseURL,urn,"/counts/")
+		htr <- GET(url)
+		if (http_status(htr)$category == "Success") {
+			returnData <- content(htr,as="text",encoding=encoding)
+			if (nchar(returnData) > 0) {
+				con <- textConnection(returnData,open="r")
+				countTable <- read.csv(con,stringsAsFactors=FALSE)
+				close(con)
+				return(countTable)
+			} else {
+				return(NA)
+			}
+		} else if (http_status(htr)$category == "Not Found") {
+			stop("No such ScoreSet!")
+		} else {
+			stop("MaveDB server message: ",http_status(htr)$message)
+		}
+	}
+
+	getMetadata <- function(urn) {
+		if (!grepl(scsRE,urn)) {
+			stop(urn," is not a valid ScoreSet URN!")
+		}
+		url <- paste0(baseURL,urn,"/metadata/")
 		htr <- GET(url)
 		if (http_status(htr)$category == "Success") {
 			returnData <- content(htr,as="text",encoding=encoding)
@@ -479,7 +942,8 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		getAllScoreSets=getAllScoreSets,
 		getScoreSet=getScoreSet,
 		getScores=getScores,
-		getCounts=getCounts
+		getCounts=getCounts,
+		getMetadata=getMetadata
 	),class="rapimave")
 }
 

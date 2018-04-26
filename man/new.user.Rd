@@ -22,8 +22,10 @@ A user object offers the following getter functions:
   \item{getUsername()} return the username.
   \item{getFirstName()} return the user's first name.
   \item{getLastName()} return the user's last name.
+  \item{getDisplayName()} return the user's preferred display name.
   \item{getExperimentSets()} return the ExperimentSets attributed to the user.
   \item{getExperiments()} return the Experiments attributed to the user.
+  \item{getScoreSets()} return the ScoreSets attributed to the user.
 }
 }
 \examples{

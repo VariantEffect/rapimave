@@ -15,7 +15,7 @@ Prints a human-readable summary of a R-API MaveDB ExperimentSet object:
 \examples{
 \dontrun{
 mave <- new.rapimave()
-print(mave$getExperimentSet("EXPS000001"))
+print(mave$getExperimentSet("urn:mavedb:00000001"))
 }
 }
 \keyword{MaveDB}

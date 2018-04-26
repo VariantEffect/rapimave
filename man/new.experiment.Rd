@@ -19,16 +19,30 @@ Internal constructor that creates an immutable new Experiment object. This funct
 \details{
 A Experiment object offers the following getter functions:
 \itemize{
-  \item{getScoreSets()} return the list of accessions of the Experiment's ScoreSets.
-  \item{getAuthors()} returns the usernames of the authors of this Experiment.
-  \item{getAccession()} return the accession of this Experiment.
+  \item{getContributors()} returns a list of users that contributed to this record.
+  \item{getURN()} returns the URN of this record.
+  \item{getCreationDate()} returns the date when this record was originally created.
+  \item{getModificationDate()} returns the date when this record was last modified.
+  \item{getPublicationDate()} returns the date when this record was published.
+  \item{getCreatedBy()} returns the user who originally created this record.
+  \item{getModifiedBy()} returns the user who last modified this record.
+  \item{getMetadata()} returns the metadata for this record.
+  \item{getTitle()} returns the title of this record.
+  \item{getShortDescription()} returns a short description text of this record.
+  \item{getAbstract()} returns the abstract text of this record.
+  \item{getMethods()} returns the methods description text of this record.
+  \item{getKeywords()} returns the list of keywords associated with this record.
+  \item{getDOIs()} returns the list of Digital Object Identifiers (DOIs) associated with this record.
+  \item{getXrefSRA()} returns cross-references to the NCBI Short Read Archive (SRA).
+  \item{getXRefPubmed()} returns cross-references to Pubmed.
   \item{getExperimentSet()} return the accession of the ExperimentSet to which this Experiment belongs.
+  \item{getScoreSets()} return the list of URNs of the Experiment's ScoreSets.
 }
 }
 \examples{
 \dontrun{
 mave <- new.rapimave()
-exp1 <- mave$getExperiment("EXP000001A")
+exp1 <- mave$getExperiment("urn:mavedb:00000001-a")
 authorIds <- exp1$getAuthors()
 }
 }

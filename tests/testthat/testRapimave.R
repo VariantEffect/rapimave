@@ -2,9 +2,10 @@ library(rapimave)
 
 context("MaveDB API access")
 
+url <- "http://ec2-13-210-169-246.ap-southeast-2.compute.amazonaws.com/api/"
 
 test_that("getUser() works", {
-	mave <- new.rapimave()
+	mave <- new.rapimave(baseURL=url)
 
 	users <- mave$getAllUsers()
 	print(users)
@@ -16,49 +17,56 @@ test_that("getUser() works", {
 })
 
 
+test_that("URN detection works", {
+	mave <- new.rapimave(baseURL=url)
+
+	expect_error(mave$getExperimentSet("EXPS000001"))
+
+})
+
 test_that("getExperimentSet() works", {
-	mave <- new.rapimave()
+	mave <- new.rapimave(baseURL=url)
 
 	sets <- mave$getAllExperimentSets()
 	print(sets)
 
-	set1 <- mave$getExperimentSet("EXPS000001")
+	set1 <- mave$getExperimentSet("urn:mavedb:00000001")
 	print(set1)
-	expect_equal("EXP000001A",set1$getExperiments())
+	expect_equal("urn:mavedb:00000001-a",set1$getExperiments())
 
 })
 
 test_that("getExperiment() works", {
-	mave <- new.rapimave()
+	mave <- new.rapimave(baseURL=url)
 
 	exps <- mave$getAllExperiments()
 	print(exps)
 
-	exp1 <- mave$getExperiment("EXP000001A")
+	exp1 <- mave$getExperiment("urn:mavedb:00000001-a")
 	print(exp1)
-	expect_equal("EXPS000001",exp1$getExperimentSet())
+	expect_equal("urn:mavedb:00000001",exp1$getExperimentSet())
 
 })
 
 test_that("getScoreSet() works", {
-	mave <- new.rapimave()
+	mave <- new.rapimave(baseURL=url)
 
 	sets <- mave$getAllScoreSets()
 	print(sets)
 
-	set <- mave$getScoreSet("SCS000001A.2")
+	set <- mave$getScoreSet("urn:mavedb:00000001-a-1")
 	print(set)
 	expect_equal("hgvs",set$getScoreColumns()[[1]])
 
 })
 
 test_that("getScores() works", {
-	mave <- new.rapimave()
+	mave <- new.rapimave(baseURL=url)
 
-	scores <- mave$getScores("SCS000001A.2")
+	scores <- mave$getScores("urn:mavedb:00000001-a-1")
 	print(head(scores))
 
-	counts <- mave$getCounts("SCS000001A.2")
+	counts <- mave$getCounts("urn:mavedb:00000001-a-1")
 	print(head(counts))
 
 })

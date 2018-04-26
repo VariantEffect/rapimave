@@ -168,7 +168,7 @@ new.experimentSet <- function(data) {
 			if (!is.null(data$pubmed_ids)) {
 				lapply(.data$pubmed_ids,new.xref)
 			} else NULL
-		},ds,
+		},
 		getExperiments=function() .data$experiments
 	),class="rapimaveExpSet")
 }
@@ -742,7 +742,7 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		if (!grepl(orcidRE,username)) {
 			stop(username," is not a valid ORCID!")
 		}
-		url <- paste0(baseURL,username,"/")
+		url <- paste0(baseURL,"users/",username,"/")
 		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))

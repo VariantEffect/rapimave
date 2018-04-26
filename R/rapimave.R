@@ -675,6 +675,8 @@ print.rapimaveXref <- function(obj) {
 #' 	\item{getUser(username)} returns the user object for the given username. 
 #'     Usernames are usually ORCID IDs. See https://orcid.org/ for information on ORCID.
 #'     See \code{\link{new.user}} for available methods on user objects.
+#' 	\item{findExperimentSets(filter)} returns a list of all ExperimentSet objects that match the given filter word.
+#'     See \code{\link{new.experimentSet}} for available methods on ExperimentSet objects.
 #' 	\item{getAllExperimentSets()} returns a list of all ExperimentSet objects.
 #'     See \code{\link{new.experimentSet}} for available methods on ExperimentSet objects.
 #' 	\item{getExperimentSet(urn)} returns the ExperimentSet object for the given URN.
@@ -682,16 +684,21 @@ print.rapimaveXref <- function(obj) {
 #'     See \code{\link{new.experimentSet}} for available methods on ExperimentSet objects.
 #' 	\item{getAllExperiments()} returns a list of all Experiment objects.
 #'     See \code{\link{new.experiment}} for available methods on Experiment objects.
+#' 	\item{findExperiments(filter)} returns a list of all Experiment objects that match the given filter word.
+#'     See \code{\link{new.experiment}} for available methods on Experiment objects.
 #' 	\item{getExperiment(urn)} returns the Experiment object for the given URN.
 #'     Experiment URNs usually follow the syntax /EXP\d+\w[1]/ .
 #'     See \code{\link{new.experiment}} for available methods on Experiment objects.
 #' 	\item{getAllScoreSets()} returns a list of all ScoreSet objects.
+#'     See \code{\link{new.scoreSet}} for available methods on ScoreSet objects.
+#' 	\item{findScoreSets(filter)} returns a list of all ScoreSet objects that match the given filter word.
 #'     See \code{\link{new.scoreSet}} for available methods on ScoreSet objects.
 #' 	\item{getScoreSet(urn)} returns the ScoreSet object for the given URN.
 #'     ScoreSet URNs usually follow the syntax /SCS\d+\w[1]\.\d[1]/ .
 #'     See \code{\link{new.scoreSet}} for available methods on ScoreSet objects.
 #' 	\item{getScores(urn)} returns a \code{data.frame} with the scores for the given ScoreSet URN
 #' 	\item{getCounts(urn)} returns a \code{data.frame} with the counts for the given ScoreSet URN
+#' 	\item{getMetadata(urn)} returns a \code{data.frame} with the metadata for the given ScoreSet URN
 #' }
 #'
 #' @param baseURL MaveDB API base-URL. Defaults to "https://www.mavedb.org/api/"
@@ -758,9 +765,16 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		}
 	}
 
-	getAllExperimentSets <- function() {
+	getAllExperimentSets <- function() findExperimentSets(NULL)
+
+	findExperimentSets <- function(filter) {
 		url <- paste0(baseURL,"experimentsets/")
-		htr <- GET(url,query=list(format="json"))
+		if (!is.null(filter)) {
+			params <- list(format="json",target=filter)
+		} else {
+			params <- list(format="json")
+		}
+		htr <- GET(url,query=params)
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
 			if (length(returnData) > 0) {
@@ -793,9 +807,16 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		}
 	}
 
-	getAllExperiments <- function() {
+	getAllExperiments <- function() findExperiments(NULL)
+
+	findExperiments <- function(filter) {
 		url <- paste0(baseURL,"experiments/")
-		htr <- GET(url,query=list(format="json"))
+		if (!is.null(filter)) {
+			params <- list(format="json",target=filter)
+		} else {
+			params <- list(format="json")
+		}
+		htr <- GET(url,query=params)
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
 			if (length(returnData) > 0) {
@@ -828,9 +849,16 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		}
 	}
 
-	getAllScoreSets <- function() {
+	getAllScoreSets <- function() findScoreSets(NULL)
+
+	findScoreSets <- function(filter) {
 		url <- paste0(baseURL,"scoresets/")
-		htr <- GET(url,query=list(format="json"))
+		if (!is.null(filter)) {
+			params <- list(format="json",target=filter)
+		} else {
+			params <- list(format="json")
+		}
+		htr <- GET(url,query=params)
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
 			if (length(returnData) > 0) {
@@ -935,10 +963,13 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 	structure(list(
 		getAllUsers=getAllUsers,
 		getUser=getUser,
+		findExperimentSets=findExperimentSets,
 		getAllExperimentSets=getAllExperimentSets,
 		getExperimentSet=getExperimentSet,
+		findExperiments=findExperiments,
 		getAllExperiments=getAllExperiments,
 		getExperiment=getExperiment,
+		findScoreSets=findScoreSets,
 		getAllScoreSets=getAllScoreSets,
 		getScoreSet=getScoreSet,
 		getScores=getScores,

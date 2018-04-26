@@ -70,3 +70,16 @@ test_that("getScores() works", {
 	print(head(counts))
 
 })
+
+test_that("search function works", {
+	mave <- new.rapimave(baseURL=url)
+
+	ssets <- mave$findScoreSets("UBE2I")
+	print(ssets)
+	expect_length(ssets,1)
+
+	ssets <- mave$findScoreSets("foobar")
+	print(ssets)
+	expect_length(ssets,0)
+
+})

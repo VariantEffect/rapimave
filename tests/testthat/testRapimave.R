@@ -74,7 +74,7 @@ test_that("getScores() works", {
 test_that("search function works", {
 	mave <- new.rapimave(baseURL=url)
 
-	ssets <- mave$findScoreSets("UBE2I")
+	ssets <- mave$findScoreSets("hYAP65 WW domain")
 	print(ssets)
 	expect_length(ssets,1)
 

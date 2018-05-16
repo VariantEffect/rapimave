@@ -362,7 +362,7 @@ new.scoreSet <- function(data) {
 		"short_description","title","keywords",
 		"sra_ids","doi_ids","pubmed_ids",
 		"contributors","licence","target",
-		"score_columns","count_columns","metadata_columns",
+		"score_columns","count_columns",#"metadata_columns",
 		"previous_version","next_version","current_version",
 		"variant_count","experiment"
 	)
@@ -426,7 +426,7 @@ new.scoreSet <- function(data) {
 		getNextVersion=function() .data$next_version,
 		getCountColumns=function() .data$count_columns,
 		getScoreColumns=function() .data$score_columns,
-		getMetaDataColumns=function() .data$metadata_columns,
+		# getMetaDataColumns=function() .data$metadata_columns,
 		getVariantCount=function() .data$variant_count,
 		getExperiment=function() .data$experiment
 	),class="rapimaveScoreSet")

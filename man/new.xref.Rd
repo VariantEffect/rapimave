@@ -23,5 +23,7 @@ A ScoreSet object offers the following getter functions:
   \item{getURL()} returns the database URL
   \item{getDB()} returns the database name
   \item{getDBVersion()} returns the database version
+  \item{getOffset()} returns the numerical sequence offset compared to the database entry. 
+     Only applicable for some databases. Returns NULL where not defined.
 }
 }

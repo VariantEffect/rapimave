@@ -633,6 +633,8 @@ print.rapimaveGenome <- function(obj) {
 #'   \item{getURL()} returns the database URL
 #'   \item{getDB()} returns the database name
 #'   \item{getDBVersion()} returns the database version
+#'   \item{getOffset()} returns the numerical sequence offset compared to the database entry. 
+#'      Only applicable for some databases. Returns NULL where not defined.
 #' }
 #'
 #' @return a new R-API MaveDB Xref object.
@@ -641,14 +643,19 @@ new.xref <- function(data) {
 	expectedFields <- c(
 		"identifier","url","dbversion","dbname"
 	)
-	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
+	if (!is.list(.data) || !all(expectedFields %in% names(.data))) {
 		stop("Illegal argument for new.xref()")
 	}
 	structure(list(
 		getID=function() .data$identifier,
 		getURL=function() .data$url,
 		getDB=function() .data$dbname,
-		getDBVersion=function() .data$dbversion
+		getDBVersion=function() .data$dbversion,
+		getOffset=function() {
+			if ("offset" %in% names(.data)) {
+				.data$offset
+			} else NULL
+		}
 	),class="rapimaveXref")
 }
 

@@ -155,17 +155,17 @@ new.experimentSet <- function(data) {
 		getMethods=function() .data$method_text,
 		getKeywords=function() .data$keywords,
 		getDOIs=function() {
-			if (!is.null(data$doi_ids)) {
+			if (!is.null(.data$doi_ids)) {
 				lapply(.data$doi_ids,new.xref)
 			} else NULL
 		},
 		getXRefSRA=function() {
-			if (!is.null(data$sra_ids)) {
+			if (!is.null(.data$sra_ids)) {
 				lapply(.data$sra_ids,new.xref)
 			} else NULL
 		},
 		getXRefPubmed=function() {
-			if (!is.null(data$pubmed_ids)) {
+			if (!is.null(.data$pubmed_ids)) {
 				lapply(.data$pubmed_ids,new.xref)
 			} else NULL
 		},
@@ -360,14 +360,15 @@ new.scoreSet <- function(data) {
 		"publish_date","created_by","modified_by",
 		"extra_metadata","abstract_text","method_text",
 		"short_description","title","keywords",
-		"sra_ids","doi_ids","pubmed_ids",
+		# "sra_ids",
+		"doi_ids","pubmed_ids",
 		"contributors","licence","target",
 		"score_columns","count_columns",#"metadata_columns",
 		"previous_version","next_version","current_version",
 		"variant_count","experiment"
 	)
 	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
-		stop("Illegal argument for new.experimentSet()")
+		stop("Illegal argument for new.scoreSet()")
 	}
 	#TODO: Validate data!
 	structure(list(
@@ -397,11 +398,11 @@ new.scoreSet <- function(data) {
 				lapply(.data$doi_ids,new.xref)
 			} else NULL
 		},
-		getXRefSRA=function() {
-			if (!is.null(data$sra_ids)) {
-				lapply(.data$sra_ids,new.xref)
-			} else NULL
-		},
+		# getXRefSRA=function() {
+		# 	if (!is.null(data$sra_ids)) {
+		# 		lapply(.data$sra_ids,new.xref)
+		# 	} else NULL
+		# },
 		getXRefPubmed=function() {
 			if (!is.null(data$pubmed_ids)) {
 				lapply(.data$pubmed_ids,new.xref)

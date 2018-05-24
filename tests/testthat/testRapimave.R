@@ -76,7 +76,7 @@ test_that("search function works", {
 
 	ssets <- mave$findScoreSets("hYAP65 WW domain")
 	print(ssets)
-	expect_length(ssets,1)
+	expect_gt(length(ssets),0)
 
 	ssets <- mave$findScoreSets("foobar")
 	print(ssets)

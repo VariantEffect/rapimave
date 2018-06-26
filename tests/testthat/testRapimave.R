@@ -2,7 +2,8 @@ library(rapimave)
 
 context("MaveDB API access")
 
-url <- "http://ec2-13-210-169-246.ap-southeast-2.compute.amazonaws.com/api/"
+# url <- "http://ec2-13-210-169-246.ap-southeast-2.compute.amazonaws.com/api/"
+url <- "https://www.mavedb.org/api/"
 
 test_that("getUser() works", {
 	mave <- new.rapimave(baseURL=url)
@@ -56,7 +57,7 @@ test_that("getScoreSet() works", {
 
 	set <- mave$getScoreSet("urn:mavedb:00000001-a-1")
 	print(set)
-	expect_equal("hgvs",set$getScoreColumns()[[1]])
+	expect_equal("hgvs_nt",set$getScoreColumns()[[1]])
 
 })
 
@@ -74,12 +75,26 @@ test_that("getScores() works", {
 test_that("search function works", {
 	mave <- new.rapimave(baseURL=url)
 
-	ssets <- mave$findScoreSets("hYAP65 WW domain")
+	ssets <- mave$findScoreSets("UBE2I")
 	print(ssets)
 	expect_gt(length(ssets),0)
 
 	ssets <- mave$findScoreSets("foobar")
 	print(ssets)
 	expect_length(ssets,0)
+
+})
+
+
+test_that("target data access works", {
+	mave <- new.rapimave(baseURL=url)
+
+	set <- mave$getScoreSet("urn:mavedb:00000001-a-1")
+	target <- set$getTarget()
+
+	expect_length(target$getSequence(),1)
+	
+	xref <- target$getXrefUniprot()
+	expect_equivalent(xref$getID(),"P63279")
 
 })

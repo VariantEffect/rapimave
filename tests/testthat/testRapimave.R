@@ -33,7 +33,7 @@ test_that("getExperimentSet() works", {
 
 	set1 <- mave$getExperimentSet("urn:mavedb:00000001")
 	print(set1)
-	expect_equal("urn:mavedb:00000001-a",set1$getExperiments())
+	expect_equal("urn:mavedb:00000001-a",set1$getExperiments()[[1]])
 
 })
 
@@ -65,6 +65,7 @@ test_that("getScores() works", {
 	mave <- new.rapimave(baseURL=url)
 
 	scores <- mave$getScores("urn:mavedb:00000001-a-1")
+	expect_gt(nrow(scores),0)
 	print(head(scores))
 
 	counts <- mave$getCounts("urn:mavedb:00000001-a-1")

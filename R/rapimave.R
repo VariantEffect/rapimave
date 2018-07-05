@@ -799,7 +799,7 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		if (!grepl(expsRE,urn)) {
 			stop(urn," is not a valid Experiment Set URN!")
 		}
-		url <- paste0(baseURL,urn,"/")
+		url <- paste0(baseURL,"experimentsets/",urn,"/")
 		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
@@ -841,7 +841,7 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		if (!grepl(expRE,urn)) {
 			stop(urn," is not a valid Experiment URN!")
 		}
-		url <- paste0(baseURL,urn,"/")
+		url <- paste0(baseURL,"experiments/",urn,"/")
 		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
@@ -883,7 +883,7 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		if (!grepl(scsRE,urn)) {
 			stop(urn," is not a valid ScoreSet URN!")
 		}
-		url <- paste0(baseURL,urn,"/")
+		url <- paste0(baseURL,"scoresets/",urn,"/")
 		htr <- GET(url,query=list(format="json"))
 		if (http_status(htr)$category == "Success") {
 			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
@@ -903,7 +903,7 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		if (!grepl(scsRE,urn)) {
 			stop(urn," is not a valid ScoreSet URN!")
 		}
-		url <- paste0(baseURL,urn,"/scores/")
+		url <- paste0(baseURL,"scoresets/",urn,"/scores/")
 		htr <- GET(url)
 		if (http_status(htr)$category == "Success") {
 			returnData <- content(htr,as="text",encoding=encoding)
@@ -926,7 +926,7 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		if (!grepl(scsRE,urn)) {
 			stop(urn," is not a valid ScoreSet URN!")
 		}
-		url <- paste0(baseURL,urn,"/counts/")
+		url <- paste0(baseURL,"scoresets/",urn,"/counts/")
 		htr <- GET(url)
 		if (http_status(htr)$category == "Success") {
 			returnData <- content(htr,as="text",encoding=encoding)
@@ -949,7 +949,7 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		if (!grepl(scsRE,urn)) {
 			stop(urn," is not a valid ScoreSet URN!")
 		}
-		url <- paste0(baseURL,urn,"/metadata/")
+		url <- paste0(baseURL,"scoresets/",urn,"/metadata/")
 		htr <- GET(url)
 		if (http_status(htr)$category == "Success") {
 			returnData <- content(htr,as="text",encoding=encoding)

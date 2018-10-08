@@ -587,14 +587,14 @@ print.rapimaveRefmap <- function(obj) {
 new.genome <- function(data) {
 	.data <- data
 	expectedFields <- c(
-		"short_name","species_name","ensembl","refseq"
+		"short_name","organism_name","ensembl","refseq"
 	)
 	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
 		stop("Illegal argument for new.genome()")
 	}
 	structure(list(
 		getShortName=function() .data$short_name,
-		getSpecies=function() .data$species_name,
+		getSpecies=function() .data$organism_name,
 		getXRefEnsembl=function() {
 			if (!is.null(.data$ensembl)) {
 				new.xref(.data$ensembl)

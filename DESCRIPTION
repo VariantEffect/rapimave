@@ -4,7 +4,7 @@ Version: 0.1
 Authors@R: person("Jochen", "Weile", email = "jochenweile@gmail.com", role = c("aut", "cre"))
 Description: Allows programatic access to the MaveDB database of Deep Mutational Scans
 Depends: R (>= 3.1.2)
-License: GPL
+License: GPL-3 + file COPYING
 Encoding: UTF-8
 LazyData: true
 Imports: hgvsParseR, httr, RJSONIO

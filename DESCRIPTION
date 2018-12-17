@@ -10,3 +10,4 @@ LazyData: true
 Imports: hgvsParseR, httr, RJSONIO
 Suggests: testthat
 RoxygenNote: 6.0.1
+Remotes: github::VariantEffect/hgvsParseR

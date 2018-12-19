@@ -915,6 +915,46 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		}
 	}
 
+	extract.groups <- function(x, re) {
+		matches <- regexpr(re,x,perl=TRUE)
+		start <- attr(matches,"capture.start")
+		end <- start + attr(matches,"capture.length") - 1
+		do.call(cbind,lapply(1:ncol(start), function(i) {
+			sapply(1:nrow(start),function(j){
+				if (start[j,i] > -1) substr(x[[j]],start[j,i],end[j,i]) else NA
+			})
+		}))
+	}
+
+	#custom parsing function, as the new comment lines are not compatible with the default
+	#read.csv function
+	parseCSV <- function(returnData,forceNumeric=TRUE) {
+		lines <- strsplit(returnData,"\n")[[1]]
+		isHeader <- grepl("^#",lines)
+		if (all(isHeader)) {
+			#then it's an empty file!
+			return(NA)
+		}
+		mainLines <- lines[!isHeader]
+		cnames <- strsplit(mainLines[[1]],",")[[1]]
+		values <- strsplit(mainLines[-1],",")
+		scoreTable <- do.call(data.frame,c(lapply(1:length(cnames),function(i) {
+			colvals <- trimws(sapply(values,`[`,i))
+			if (forceNumeric && !(cnames[[i]] %in% c("urn","hgvs","hgvs_nt","hgvs_pro"))) {
+				colvals <- as.numeric(colvals)
+			}
+			colvals
+		}),stringsAsFactors=FALSE))
+		colnames(scoreTable) <- trimws(cnames)
+
+		headerLines <- lines[isHeader]
+		keyval <- extract.groups(headerLines,"# ([^:]+): (.+)")
+		for (i in 1:length(headerLines)) {
+			attr(scoreTable,keyval[i,1]) <- keyval[i,2]
+		}
+		return(scoreTable)
+	}
+
 	getScores <- function(urn) {
 		if (!grepl(scsRE,urn)) {
 			stop(urn," is not a valid ScoreSet URN!")
@@ -924,9 +964,10 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		if (http_status(htr)$category == "Success") {
 			returnData <- content(htr,as="text",encoding=encoding)
 			if (nchar(returnData) > 0) {
-				con <- textConnection(returnData,open="r")
-				scoreTable <- read.csv(con,stringsAsFactors=FALSE)
-				close(con)
+				# con <- textConnection(returnData,open="r")
+				# scoreTable <- read.csv(con,comment.char="#",stringsAsFactors=FALSE)
+				# close(con)
+				scoreTable <- parseCSV(returnData)
 				return(scoreTable)
 			} else {
 				return(NA)
@@ -947,9 +988,10 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		if (http_status(htr)$category == "Success") {
 			returnData <- content(htr,as="text",encoding=encoding)
 			if (nchar(returnData) > 0) {
-				con <- textConnection(returnData,open="r")
-				countTable <- read.csv(con,stringsAsFactors=FALSE)
-				close(con)
+				# con <- textConnection(returnData,open="r")
+				# countTable <- read.csv(con,comment.char="#",stringsAsFactors=FALSE)
+				# close(con)
+				countTable <- parseCSV(returnData)
 				return(countTable)
 			} else {
 				return(NA)
@@ -970,10 +1012,11 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		if (http_status(htr)$category == "Success") {
 			returnData <- content(htr,as="text",encoding=encoding)
 			if (nchar(returnData) > 0) {
-				con <- textConnection(returnData,open="r")
-				countTable <- read.csv(con,stringsAsFactors=FALSE)
-				close(con)
-				return(countTable)
+				# con <- textConnection(returnData,open="r")
+				# mdTable <- read.csv(con,comment.char="#",stringsAsFactors=FALSE)
+				# close(con)
+				mdTable <- parseCSV(returnData,forceNumeric=FALSE)
+				return(mdTable)
 			} else {
 				return(NA)
 			}

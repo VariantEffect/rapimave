@@ -940,7 +940,7 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		values <- strsplit(mainLines[-1],",")
 		scoreTable <- do.call(data.frame,c(lapply(1:length(cnames),function(i) {
 			colvals <- trimws(sapply(values,`[`,i))
-			if (forceNumeric && !(cnames[[i]] %in% c("urn","hgvs","hgvs_nt","hgvs_pro"))) {
+			if (forceNumeric && !(cnames[[i]] %in% c("accession","urn","hgvs","hgvs_nt","hgvs_pro"))) {
 				colvals <- as.numeric(colvals)
 			}
 			colvals

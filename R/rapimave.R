@@ -491,16 +491,17 @@ print.rapimaveScoreSet <- function(obj) {
 new.target <- function(data) {
 	.data <- data
 	expectedFields <- c(
-		"name","wt_sequence","uniprot","ensembl",
-		"refseq","reference_maps","scoreset"
+		"name","reference_sequence","uniprot","ensembl",
+		"refseq","reference_maps","scoreset","type"
 	)
 	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
+		cat(names(.data))
 		stop("Illegal argument for new.target()")
 	}
 
 	structure(list(
 		getName=function() .data$name,
-		getSequence=function() .data$wt_sequence,
+		getSequence=function() .data$reference_sequence,
 		getXrefUniprot=function() {
 			if (!is.null(data$uniprot)) {
 				new.xref(.data$uniprot)
@@ -521,7 +522,8 @@ new.target <- function(data) {
 				lapply(.data$reference_maps,new.refmap)
 			} else NULL
 		},
-		getScoreset=function() .data$scoreset
+		getScoreset=function() .data$scoreset,
+		getType=function() .data$type
 	),class="rapimaveTarget")
 }
 

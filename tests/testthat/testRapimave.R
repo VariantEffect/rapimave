@@ -115,4 +115,6 @@ test_that("target data access works", {
 	xref <- target$getXrefUniprot()
 	expect_equivalent(xref$getID(),"P63279")
 
+	expect_equivalent(target$getType(),"Protein coding")
+
 })

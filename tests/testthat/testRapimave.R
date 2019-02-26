@@ -90,6 +90,18 @@ test_that("getScores() works", {
 
 })
 
+test_that("getScores() header extraction works", {
+	mave <- new.rapimave(baseURL=url)
+
+	scores <- mave$getScores("urn:mavedb:00000027-b-1")
+	expect_gt(nrow(scores),0)
+	print(head(scores))
+	print(attributes(scores))
+
+	expect_true(all(c("Accession","Licence") %in% names(attributes(scores))))
+
+})
+
 test_that("search function works", {
 	mave <- new.rapimave(baseURL=url)
 

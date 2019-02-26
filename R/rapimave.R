@@ -943,16 +943,20 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		scoreTable <- do.call(data.frame,c(lapply(1:length(cnames),function(i) {
 			colvals <- trimws(sapply(values,`[`,i))
 			if (forceNumeric && !(cnames[[i]] %in% c("accession","urn","hgvs","hgvs_nt","hgvs_pro"))) {
-				colvals <- as.numeric(colvals)
+				colvals <- suppressWarnings(as.numeric(colvals))
 			}
 			colvals
 		}),stringsAsFactors=FALSE))
 		colnames(scoreTable) <- trimws(cnames)
 
 		headerLines <- lines[isHeader]
-		keyval <- extract.groups(headerLines,"# ([^:]+): (.+)")
-		for (i in 1:length(headerLines)) {
-			attr(scoreTable,keyval[i,1]) <- keyval[i,2]
+		#extract only structured (key-value-pair) header lines 
+		headerLines <- headerLines[which(grepl("# [^:]+: .+",headerLines))]
+		if (length(headerLines) > 0) {
+			keyval <- extract.groups(headerLines,"# ([^:]+): (.+)")
+			for (i in 1:length(headerLines)) {
+				attr(scoreTable,keyval[i,1]) <- keyval[i,2]
+			}
 		}
 		return(scoreTable)
 	}

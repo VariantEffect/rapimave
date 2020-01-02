@@ -713,7 +713,7 @@ print.rapimaveXref <- function(obj) {
 #' 	\item{findExperiments(filter)} returns a list of all Experiment objects that match the given filter word.
 #'     See \code{\link{new.experiment}} for available methods on Experiment objects.
 #' 	\item{getExperiment(urn)} returns the Experiment object for the given URN.
-#'     Experiment URNs usually follow the syntax /^urn:mavedb:\d+-\\w+/ .
+#'     Experiment URNs usually follow the syntax /^urn:mavedb:\\d+-\\w+/ .
 #'     See \code{\link{new.experiment}} for available methods on Experiment objects.
 #' 	\item{getAllScoreSets()} returns a list of all ScoreSet objects.
 #'     See \code{\link{new.scoreSet}} for available methods on ScoreSet objects.

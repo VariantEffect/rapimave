@@ -38,21 +38,21 @@ The resulting object offers the following functions:
 	\item{getAllExperimentSets()} returns a list of all ExperimentSet objects.
     See \code{\link{new.experimentSet}} for available methods on ExperimentSet objects.
 	\item{getExperimentSet(urn)} returns the ExperimentSet object for the given URN.
-    ExperimentSet URNs usually follow the syntax /^urn:mavedb:\d+$/ .
+    ExperimentSet URNs usually follow the syntax /^urn:mavedb:\\d+$/ .
     See \code{\link{new.experimentSet}} for available methods on ExperimentSet objects.
 	\item{getAllExperiments()} returns a list of all Experiment objects.
     See \code{\link{new.experiment}} for available methods on Experiment objects.
 	\item{findExperiments(filter)} returns a list of all Experiment objects that match the given filter word.
     See \code{\link{new.experiment}} for available methods on Experiment objects.
 	\item{getExperiment(urn)} returns the Experiment object for the given URN.
-    Experiment URNs usually follow the syntax /^urn:mavedb:\d+-\w+/ .
+    Experiment URNs usually follow the syntax /^urn:mavedb:\\d+-\\w+/ .
     See \code{\link{new.experiment}} for available methods on Experiment objects.
 	\item{getAllScoreSets()} returns a list of all ScoreSet objects.
     See \code{\link{new.scoreSet}} for available methods on ScoreSet objects.
 	\item{findScoreSets(filter)} returns a list of all ScoreSet objects that match the given filter word.
     See \code{\link{new.scoreSet}} for available methods on ScoreSet objects.
 	\item{getScoreSet(urn)} returns the ScoreSet object for the given URN.
-    ScoreSet URNs usually follow the syntax /^urn:mavedb:\d+-\w+-\d+$/ .
+    ScoreSet URNs usually follow the syntax /^urn:mavedb:\\d+-\\w+-\\d+$/ .
     See \code{\link{new.scoreSet}} for available methods on ScoreSet objects.
 	\item{getScores(urn)} returns a \code{data.frame} with the scores for the given ScoreSet URN
 	\item{getCounts(urn)} returns a \code{data.frame} with the counts for the given ScoreSet URN

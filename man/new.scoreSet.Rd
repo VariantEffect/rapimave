@@ -33,7 +33,6 @@ A ScoreSet object offers the following getter functions:
   \item{getMethods()} returns the methods description text of this record.
   \item{getKeywords()} returns the list of keywords associated with this record.
   \item{getDOIs()} returns the list of Digital Object Identifiers (DOIs) associated with this record.
-  \item{getXrefSRA()} returns cross-references to the NCBI Short Read Archive (SRA).
   \item{getXRefPubmed()} returns cross-references to Pubmed.
   \item{getTarget()} returns the Target object for this scoreset, which describes the molecule that
      that was targeted in the experiment.
@@ -47,10 +46,11 @@ A ScoreSet object offers the following getter functions:
     use \code{getCurrentVersion()}.
   \item{getCountColumns()} returns the column names in the count table for this ScoreSet.
   \item{getScoreColumns()} returns the column names in the score table for this ScoreSet.
-  \item{getMetaDataColumns()} returns the column names in the metadata table for this ScoreSet.
   \item{getVariantCount()} returns the number of variants in this scoreset, i.e. the number of rows
      to be expected in the scores and counts tables.
   \item{getExperiment()} returns the URN of the experiment record to which this scoreset belongs.
+  \item{isMetaAnalysis()} returns whether this dataset represents a meta-analysis of existing data.
+  \item{getDataUsagePolicy()} returns any data usage policy text for this ScoreSet.
 }
 }
 \examples{

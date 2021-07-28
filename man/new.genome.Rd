@@ -20,8 +20,7 @@ Internal constructor that creates an immutable new genome object. This function 
 A ScoreSet object offers the following getter functions:
 \itemize{
   \item{getShortName()} returns the name of this genome object
-  \item{getSpecies()} returns the species to which this genome belongs.
-  \item{getXRefEnsembl()} returns the a cross-reference object for Ensembl (if it exists).
-  \item{getXrefRefseq()} returns the a cross-reference object for Refseq (if it exists).
+  \item{getOrganism()} returns the species to which this genome belongs.
+  \item{getAssemblyID()} returns the a cross-reference object for the assembly ID.
 }
 }

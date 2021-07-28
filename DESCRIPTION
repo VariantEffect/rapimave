@@ -1,6 +1,6 @@
 Package: rapimave
 Title: R API for MaveDB
-Version: 0.1
+Version: 0.2.0.9000
 Authors@R: person("Jochen", "Weile", email = "jochenweile@gmail.com", role = c("aut", "cre"))
 Description: Allows programatic access to the MaveDB database of Deep Mutational Scans
 Depends: R (>= 3.1.2)
@@ -9,5 +9,5 @@ Encoding: UTF-8
 LazyData: true
 Imports: hgvsParseR, httr, RJSONIO
 Suggests: testthat
-RoxygenNote: 6.0.1
+RoxygenNote: 7.0.2
 Remotes: github::VariantEffect/hgvsParseR

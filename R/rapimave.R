@@ -169,7 +169,7 @@ new.experimentSet <- function(data) {
 		getShortDescription=function() .data$short_description,
 		getAbstract=function() .data$abstract_text,
 		getMethods=function() .data$method_text,
-		getKeywords=function() .data$keywords,
+		getKeywords=function() unlist(.data$keywords),
 		getDOIs=function() {
 			if (!is.null(.data$doi_ids)) {
 				lapply(.data$doi_ids,new.xref)
@@ -277,7 +277,7 @@ new.experiment <- function(data) {
 		getShortDescription=function() .data$short_description,
 		getAbstract=function() .data$abstract_text,
 		getMethods=function() .data$method_text,
-		getKeywords=function() .data$keywords,
+		getKeywords=function() unlist(.data$keywords),
 		getDOIs=function() {
 			if (!is.null(data$doi_ids)) {
 				lapply(.data$doi_ids,new.xref)
@@ -338,7 +338,6 @@ print.rapimaveExperiment <- function(obj) {
 #'   \item{getMethods()} returns the methods description text of this record.
 #'   \item{getKeywords()} returns the list of keywords associated with this record.
 #'   \item{getDOIs()} returns the list of Digital Object Identifiers (DOIs) associated with this record.
-#'   \item{getXrefSRA()} returns cross-references to the NCBI Short Read Archive (SRA).
 #'   \item{getXRefPubmed()} returns cross-references to Pubmed.
 #'   \item{getTarget()} returns the Target object for this scoreset, which describes the molecule that
 #'      that was targeted in the experiment.
@@ -352,10 +351,11 @@ print.rapimaveExperiment <- function(obj) {
 #'     use \code{getCurrentVersion()}.
 #'   \item{getCountColumns()} returns the column names in the count table for this ScoreSet.
 #'   \item{getScoreColumns()} returns the column names in the score table for this ScoreSet.
-#'   \item{getMetaDataColumns()} returns the column names in the metadata table for this ScoreSet.
 #'   \item{getVariantCount()} returns the number of variants in this scoreset, i.e. the number of rows
 #'      to be expected in the scores and counts tables.
 #'   \item{getExperiment()} returns the URN of the experiment record to which this scoreset belongs.
+#'   \item{isMetaAnalysis()} returns whether this dataset represents a meta-analysis of existing data.
+#'   \item{getDataUsagePolicy()} returns any data usage policy text for this ScoreSet.
 #' }
 #'
 #' @return a new R-API MaveDB ScoreSet object.
@@ -381,7 +381,8 @@ new.scoreSet <- function(data) {
 		"contributors","licence","target",
 		"score_columns","count_columns",#"metadata_columns",
 		"previous_version","next_version","current_version",
-		"variant_count","experiment"
+		"variant_count","experiment",
+		"is_meta_analysis","data_usage_policy"
 	)
 	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
 		stop("Illegal argument for new.scoreSet()")
@@ -408,7 +409,7 @@ new.scoreSet <- function(data) {
 		getShortDescription=function() .data$short_description,
 		getAbstract=function() .data$abstract_text,
 		getMethods=function() .data$method_text,
-		getKeywords=function() .data$keywords,
+		getKeywords=function() unlist(.data$keywords),
 		getDOIs=function() {
 			if (!is.null(data$doi_ids)) {
 				lapply(.data$doi_ids,new.xref)
@@ -445,7 +446,9 @@ new.scoreSet <- function(data) {
 		getScoreColumns=function() .data$score_columns,
 		# getMetaDataColumns=function() .data$metadata_columns,
 		getVariantCount=function() .data$variant_count,
-		getExperiment=function() .data$experiment
+		getExperiment=function() .data$experiment,
+		isMetaAnalysis=function() .data$is_meta_analysis,
+		getDataUsagePolicy=function() .data$data_usage_policy
 	),class="rapimaveScoreSet")
 }
 
@@ -479,6 +482,7 @@ print.rapimaveScoreSet <- function(obj) {
 #' \itemize{
 #'   \item{getName()} returns the name of the target
 #'   \item{getSequence()} returns wildtype sequence of the target
+#'   \item{getSequenceType()} returns whether the sequence is at DNA or Protein level
 #'   \item{getXrefUniprot()} returns a Xref object for Uniprot
 #'   \item{getXrefEnsembl()} returns a Xref object for Ensembl
 #'   \item{getXrefRefseq()} returns a Xref object for Refseq
@@ -501,7 +505,9 @@ new.target <- function(data) {
 
 	structure(list(
 		getName=function() .data$name,
-		getSequence=function() .data$reference_sequence,
+		#TODO: reference_sequence has two elements: sequence and sequence_type
+		getSequence=function() .data$reference_sequence[["sequence"]],
+		getSequenceType=function() .data$reference_sequence[["sequence_type"]],
 		getXrefUniprot=function() {
 			if (!is.null(data$uniprot)) {
 				new.xref(.data$uniprot)
@@ -551,24 +557,23 @@ print.rapimaveTarget <- function(obj) {
 #' A ScoreSet object offers the following getter functions:
 #' \itemize{
 #'   \item{getGenome()} returns the genome object for this reference map
-#'   \item{isPrimary()} returns whether this is the primary reference map for this scoreset
-#'   \item{getIntervals()} returns a data.frame listing the intervals in the genome to which 
-#'      the target is mapped.
 #' }
 #'
 #' @return a new R-API MaveDB ReferenceMap object.
 new.refmap <- function(data) {
 	.data <- data
 	expectedFields <- c(
-		"genome","is_primary","intervals"
+		"genome"#,"is_primary","intervals"
 	)
 	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
 		stop("Illegal argument for new.refmap()")
 	}
 	structure(list(
 		getGenome=function() new.genome(.data$genome),
-		isPrimary=function() .data$is_primary,
-		getIntervals=function() do.call(rbind,.data$intervals)
+		# isPrimary=function() .data$is_primary,
+		isPrimary=.Defunct,
+		# getIntervals=function() do.call(rbind,.data$intervals)
+		getIntervals=.Defunct
 	),class="rapimaveRefmap")
 }
 
@@ -596,32 +601,39 @@ print.rapimaveRefmap <- function(obj) {
 #' A ScoreSet object offers the following getter functions:
 #' \itemize{
 #'   \item{getShortName()} returns the name of this genome object
-#'   \item{getSpecies()} returns the species to which this genome belongs.
-#'   \item{getXRefEnsembl()} returns the a cross-reference object for Ensembl (if it exists).
-#'   \item{getXrefRefseq()} returns the a cross-reference object for Refseq (if it exists).
+#'   \item{getOrganism()} returns the species to which this genome belongs.
+#'   \item{getAssemblyID()} returns the a cross-reference object for the assembly ID.
 #' }
 #'
 #' @return a new R-API MaveDB genome object.
 new.genome <- function(data) {
 	.data <- data
 	expectedFields <- c(
-		"short_name","species_name","ensembl","refseq"
+		# "short_name","species_name","ensembl","refseq"
+		"short_name","organism_name","assembly_identifier"
 	)
 	if (!is.list(data) || !all(expectedFields %in% names(.data))) {
 		stop("Illegal argument for new.genome()")
 	}
 	structure(list(
 		getShortName=function() .data$short_name,
-		getSpecies=function() .data$species_name,
+		getSpecies=function() {
+			.Deprecated("getOrganism")
+			.data$organism_name
+		},
+		getOrganism=function() .data$organism_name,
+		getAssemblyID=function() new.xref(.data$assembly_identifier),
 		getXRefEnsembl=function() {
-			if (!is.null(.data$ensembl)) {
-				new.xref(.data$ensembl)
-			} else NULL
+			.Defunct("getAssemblyID")
+			# if (!is.null(.data$ensembl)) {
+			# 	new.xref(.data$ensembl)
+			# } else NULL
 		},
 		getXRefRefseq=function() {
-			if (!is.null(.data$refseq)) {
-				new.xref(.data$refseq)
-			} else NULL
+			.Defunct("getAssemblyID")
+			# if (!is.null(.data$refseq)) {
+			# 	new.xref(.data$refseq)
+			# } else NULL
 		}
 	),class="rapimaveGenome")
 }
@@ -725,6 +737,16 @@ print.rapimaveXref <- function(obj) {
 #' 	\item{getScores(urn)} returns a \code{data.frame} with the scores for the given ScoreSet URN
 #' 	\item{getCounts(urn)} returns a \code{data.frame} with the counts for the given ScoreSet URN
 #' 	\item{getMetadata(urn)} returns a \code{data.frame} with the metadata for the given ScoreSet URN
+#'  \item{getKeywords()} returns all currently used keywords across MaveDB.
+#'  \item{getAllPubmed()} returns all currently used Pubmed IDs across MaveDB.
+#'  \item{getAllDOI()} returns all currently used DOIs across MaveDB.
+#'  \item{getAllSRA()} returns all currently used SRA IDs across MaveDB.
+#'  \item{getAllRefseq()} returns all currently used Refseq IDs across MaveDB.
+#'  \item{getAllUniprot()} returns all currently used Uniprot IDs across MaveDB.
+#'  \item{getAllEnsembl()} returns all currently used Ensembl IDs across MaveDB.
+#'  \item{getAllAssemblies()} returns all currently used Genome assemblies across MaveDB.
+#'  \item{getAllTargets()} returns all currently used target sequences across MaveDB.
+#'  \item{getReferenceGenomes()} returns all currently used reference genomes across MaveDB.
 #' }
 #'
 #' @param baseURL MaveDB API base-URL. Defaults to "https://www.mavedb.org/api/"
@@ -1033,6 +1055,76 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		}
 	}
 
+	getKeywords <- function() {
+		url <- paste0(baseURL,"keyword/")
+		htr <- GET(url)
+		if (http_status(htr)$category == "Success") {
+			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
+			if (length(returnData) > 0) {
+				return(as.vector(unlist(returnData)))
+			} else {
+				return(list())
+			}
+		} else {
+			stop("MaveDB server message: ",http_status(htr)$message)
+		}
+	}
+
+	getTopLevelXRefs <- function(key) {
+		url <- paste0(baseURL,key,"/")
+		htr <- GET(url)
+		if (http_status(htr)$category == "Success") {
+			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
+			if (length(returnData) > 0) {
+				return(lapply(returnData,new.xref))
+			} else {
+				return(list())
+			}
+		} else {
+			stop("MaveDB server message: ",http_status(htr)$message)
+		}
+	}
+
+	getAllPubmed <- function() getTopLevelXRefs("pubmed")
+	getAllDOI <- function() getTopLevelXRefs("doi")
+	getAllSRA <- function() getTopLevelXRefs("sra")
+	getAllRefseq <- function() getTopLevelXRefs("refseq")
+	getAllUniprot <- function() getTopLevelXRefs("uniprot")
+	getAllEnsembl <- function() getTopLevelXRefs("ensembl")
+	getAllAssemblies <- function() getTopLevelXRefs("genome")
+
+
+	getAllTargets <- function() {
+		url <- paste0(baseURL,"target/")
+		htr <- GET(url)
+		if (http_status(htr)$category == "Success") {
+			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
+			if (length(returnData) > 0) {
+				return(lapply(returnData,new.target))
+			} else {
+				return(list())
+			}
+		} else {
+			stop("MaveDB server message: ",http_status(htr)$message)
+		}
+	}
+
+	getAllReferenceGenomes <- function() {
+		url <- paste0(baseURL,"reference/")
+		htr <- GET(url)
+		if (http_status(htr)$category == "Success") {
+			returnData <- fromJSON(content(htr,as="text",encoding=encoding))
+			if (length(returnData) > 0) {
+				return(lapply(returnData,new.genome))
+			} else {
+				return(list())
+			}
+		} else {
+			stop("MaveDB server message: ",http_status(htr)$message)
+		}
+	}
+
+
 	structure(list(
 		getAllUsers=getAllUsers,
 		getUser=getUser,
@@ -1047,7 +1139,17 @@ new.rapimave <- function(baseURL="https://www.mavedb.org/api/",certifySSL=FALSE,
 		getScoreSet=getScoreSet,
 		getScores=getScores,
 		getCounts=getCounts,
-		getMetadata=getMetadata
+		getMetadata=getMetadata,
+		getKeywords=getKeywords,
+		getAllPubmed=getAllPubmed,
+		getAllDOI=getAllDOI,
+		getAllSRA=getAllSRA,
+		getAllRefseq=getAllRefseq,
+		getAllUniprot=getAllUniprot,
+		getAllEnsembl=getAllEnsembl,
+		getAllAssemblies=getAllAssemblies,
+		getAllTargets=getAllTargets,
+		getAllReferenceGenomes=getAllReferenceGenomes
 	),class="rapimave")
 }
 

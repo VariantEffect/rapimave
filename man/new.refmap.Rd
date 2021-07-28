@@ -20,8 +20,5 @@ Internal constructor that creates an immutable new ReferenceMap object. This fun
 A ScoreSet object offers the following getter functions:
 \itemize{
   \item{getGenome()} returns the genome object for this reference map
-  \item{isPrimary()} returns whether this is the primary reference map for this scoreset
-  \item{getIntervals()} returns a data.frame listing the intervals in the genome to which 
-     the target is mapped.
 }
 }

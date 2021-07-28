@@ -4,8 +4,11 @@
 \alias{new.rapimave}
 \title{MaveDB R-API client constructor}
 \usage{
-new.rapimave(baseURL = "https://www.mavedb.org/api/", certifySSL = FALSE,
-  encoding = "UTF-8")
+new.rapimave(
+  baseURL = "https://www.mavedb.org/api/",
+  certifySSL = FALSE,
+  encoding = "UTF-8"
+)
 }
 \arguments{
 \item{baseURL}{MaveDB API base-URL. Defaults to "https://www.mavedb.org/api/"}
@@ -54,6 +57,16 @@ The resulting object offers the following functions:
 	\item{getScores(urn)} returns a \code{data.frame} with the scores for the given ScoreSet URN
 	\item{getCounts(urn)} returns a \code{data.frame} with the counts for the given ScoreSet URN
 	\item{getMetadata(urn)} returns a \code{data.frame} with the metadata for the given ScoreSet URN
+ \item{getKeywords()} returns all currently used keywords across MaveDB.
+ \item{getAllPubmed()} returns all currently used Pubmed IDs across MaveDB.
+ \item{getAllDOI()} returns all currently used DOIs across MaveDB.
+ \item{getAllSRA()} returns all currently used SRA IDs across MaveDB.
+ \item{getAllRefseq()} returns all currently used Refseq IDs across MaveDB.
+ \item{getAllUniprot()} returns all currently used Uniprot IDs across MaveDB.
+ \item{getAllEnsembl()} returns all currently used Ensembl IDs across MaveDB.
+ \item{getAllAssemblies()} returns all currently used Genome assemblies across MaveDB.
+ \item{getAllTargets()} returns all currently used target sequences across MaveDB.
+ \item{getReferenceGenomes()} returns all currently used reference genomes across MaveDB.
 }
 }
 \examples{

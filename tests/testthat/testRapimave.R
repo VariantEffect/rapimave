@@ -50,7 +50,7 @@ test_that("getExperimentSet() works", {
 
 	set1 <- mave$getExperimentSet("urn:mavedb:00000001")
 	print(set1)
-	expect_equal("urn:mavedb:00000001-a",set1$getExperiments()[[1]])
+	expect_true("urn:mavedb:00000001-a" %in% set1$getExperiments())
 
 })
 

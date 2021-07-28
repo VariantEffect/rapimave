@@ -22,6 +22,7 @@ A ScoreSet object offers the following getter functions:
 \itemize{
   \item{getName()} returns the name of the target
   \item{getSequence()} returns wildtype sequence of the target
+  \item{getSequenceType()} returns whether the sequence is at DNA or Protein level
   \item{getXrefUniprot()} returns a Xref object for Uniprot
   \item{getXrefEnsembl()} returns a Xref object for Ensembl
   \item{getXrefRefseq()} returns a Xref object for Refseq
